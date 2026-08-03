@@ -22,17 +22,21 @@ const jsonLd = {
 };
 ---
 
-<nav aria-label="Breadcrumb" class="text-sm text-gray-500 mb-6">
+<nav aria-label="Breadcrumb" class="text-meta mb-6" style="color: var(--color-text-muted); font-size: 13px;">
   <ol class="flex items-center gap-2 flex-wrap">
     {items.map((item, i) => (
       <li class="flex items-center gap-2">
-        {i > 0 && <span class="text-gray-300">/</span>}
+        {i > 0 && <span style="color: var(--color-border-subtle);">/</span>}
         {item.href ? (
-          <a href={item.href} class="hover:text-[var(--color-brand)] transition-colors">
+          <a
+            href={item.href}
+            class="chevron-link"
+            style="text-transform: none; font-size: 13px; letter-spacing: 0;"
+          >
             {item.label}
           </a>
         ) : (
-          <span class="text-gray-700 font-medium">{item.label}</span>
+          <span style="color: var(--color-text-primary); font-weight: 500;">{item.label}</span>
         )}
       </li>
     ))}

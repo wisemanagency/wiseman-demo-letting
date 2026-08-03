@@ -1,5 +1,5 @@
 ---
-import { formatPrice, statusLabel, statusColour } from "@/lib/utils";
+import { formatPrice, statusLabel } from "@/lib/utils";
 
 interface Props {
   property: {
@@ -14,6 +14,7 @@ interface Props {
     sqft?: number;
     town?: string;
     postcode?: string;
+    featured?: boolean;
     thumbnail?: {
       asset: { url: string; metadata?: { lqip?: string } };
       alt?: string;
@@ -33,17 +34,28 @@ const {
   sqft,
   town,
   postcode,
+  featured,
   thumbnail,
 } = property;
 
 const imageUrl = thumbnail?.asset?.url
-  ? `${thumbnail.asset.url}?w=600&h=400&fit=crop&auto=format`
+  ? `${thumbnail.asset.url}?w=600&h=450&fit=crop&auto=format`
   : "/floorplan-placeholder.svg";
 const lqip = thumbnail?.asset?.metadata?.lqip;
+
+const statusClass =
+  status === "for-sale" || status === "sold-stc" || status === "under-offer"
+    ? "badge-sale"
+    : status === "for-rent" || status === "let-agreed" || status === "let"
+      ? "badge-rent"
+      : "badge-muted";
 ---
 
-<a href={`/properties/${slug}`} class="property-card block bg-white rounded-lg overflow-hidden shadow-sm border border-gray-100">
-  <div class="relative aspect-[3/2] overflow-hidden bg-gray-100">
+<a
+  href={`/properties/${slug}`}
+  class="card property-card block"
+>
+  <div class="property-image relative">
     <img
       src={imageUrl}
       alt={thumbnail?.alt || title}
@@ -52,27 +64,30 @@ const lqip = thumbnail?.asset?.metadata?.lqip;
       class="w-full h-full object-cover"
       style={lqip ? `background-image: url(${lqip}); background-size: cover;` : ""}
     />
-    <span class:list={["status-badge absolute top-3 left-3", statusColour(status)]}>
+    <span class:list={["badge absolute top-3 left-3", statusClass]}>
       {statusLabel(status)}
     </span>
+    {featured && (
+      <span class="badge badge-featured absolute top-3 right-3">Featured</span>
+    )}
   </div>
 
-  <div class="p-4 md:p-5">
-    <p class="text-xl md:text-2xl font-bold mb-1" style="font-family: var(--font-display)">
+  <div class="card-body">
+    <p class="text-price-lg mb-1.5">
       {formatPrice(price, priceQualifier)}
     </p>
 
-    <h3 class="text-sm font-semibold text-gray-800 mb-2 line-clamp-1">
+    <h3 class="text-card-title text-text-primary mb-1.5 line-clamp-1">
       {title}
     </h3>
 
     {(town || postcode) && (
-      <p class="text-xs text-gray-500 mb-3">
+      <p class="text-meta mb-3" style="font-size: 12px; color: var(--color-text-muted);">
         {[town, postcode].filter(Boolean).join(", ")}
       </p>
     )}
 
-    <div class="flex items-center gap-4 text-xs text-gray-500 border-t border-gray-100 pt-3">
+    <div class="flex items-center gap-4 text-meta border-t pt-3" style="font-size: 12px; color: var(--color-text-muted); border-color: var(--color-border-subtle);">
       {bedrooms != null && (
         <span class="flex items-center gap-1">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
