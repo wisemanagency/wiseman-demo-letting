@@ -33,11 +33,12 @@ export function statusLabel(status: string): string {
  * Status badge colour class (Tailwind)
  */
 export function statusColour(status: string): string {
-  if (status === "for-sale" || status === "for-rent") return "bg-green-600 text-white";
-  if (status === "under-offer" || status === "let-agreed") return "bg-amber-500 text-white";
-  if (status === "sold" || status === "sold-stc" || status === "let")
-    return "bg-red-600 text-white";
-  return "bg-gray-500 text-white";
+  if (status === "for-sale" || status === "under-offer" || status === "sold-stc")
+    return "badge-sale";
+  if (status === "for-rent" || status === "let-agreed" || status === "let")
+    return "badge-rent";
+  if (status === "sold") return "badge-sale";
+  return "badge-muted";
 }
 
 /**
