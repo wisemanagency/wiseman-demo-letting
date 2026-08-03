@@ -1,0 +1,19 @@
+---
+import { epcColour } from "@/lib/utils";
+
+interface Props {
+  rating: string;
+  size?: "sm" | "md";
+}
+
+const { rating, size = "md" } = Astro.props;
+const colour = epcColour(rating);
+const sizeClasses = size === "sm" ? "text-xs px-2 py-0.5" : "text-sm px-3 py-1";
+---
+
+<span
+  class:list={["epc-bar inline-flex items-center font-bold rounded", sizeClasses]}
+  style={`background: ${colour}`}
+>
+  EPC {rating}
+</span>

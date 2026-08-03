@@ -1,0 +1,315 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import EpcBadge from "@/components/EpcBadge.astro";
+import ImageGallery from "@/components/ImageGallery";
+import MapEmbed from "@/components/MapEmbed";
+import VideoPlayer from "@/components/VideoPlayer";
+import FloorplansViewer from "@/components/FloorplansViewer";
+import ContactForm from "@/components/ContactForm";
+import AgentCard from "@/components/AgentCard.astro";
+import SimilarListings from "@/components/SimilarListings";
+import MortgageCalculator from "@/components/MortgageCalculator";
+import { sanityClient } from "@/lib/sanity";
+import { propertyBySlugQuery, allPropertiesQuery } from "@/lib/queries";
+import { formatPrice, statusLabel, statusColour, fullAddress, propertySummary } from "@/lib/utils";
+import { PortableText } from "@portabletext/react";
+
+// Generate static paths at build time
+export async function getStaticPaths() {
+  const properties = await sanityClient.fetch(allPropertiesQuery);
+  return properties.map((p: any) => ({ params: { slug: p.slug } }));
+}
+
+const { slug } = Astro.params;
+const [property, allProperties] = await Promise.all([
+  sanityClient.fetch(propertyBySlugQuery, { slug }),
+  sanityClient.fetch(allPropertiesQuery),
+]);
+
+if (!property) {
+  return Astro.redirect("/404");
+}
+
+const address = fullAddress(property);
+const summary = propertySummary(property);
+const ogImage = property.images?.[0]?.asset?.url
+  ? `${property.images[0].asset.url}?w=1200&h=630&fit=crop&auto=format`
+  : undefined;
+
+// JSON-LD for RealEstateListing
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "RealEstateListing",
+  name: property.title,
+  description: property.metaDescription || `${summary} in ${property.town}`,
+  url: Astro.url.href,
+  ...(ogImage && { image: ogImage }),
+  offers: {
+    "@type": "Offer",
+    price: property.price,
+    priceCurrency: "GBP",
+    availability: property.status === "sold" || property.status === "let"
+      ? "https://schema.org/SoldOut"
+      : "https://schema.org/InStock",
+  },
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: [property.addressLine1, property.addressLine2].filter(Boolean).join(", "),
+    addressLocality: property.town,
+    addressRegion: property.county,
+    postalCode: property.postcode,
+    addressCountry: "GB",
+  },
+  ...(property.location && {
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: property.location.lat,
+      longitude: property.location.lng,
+    },
+  }),
+  numberOfRooms: (property.bedrooms || 0) + (property.receptionRooms || 0),
+  numberOfBedrooms: property.bedrooms,
+  numberOfBathroomsTotal: property.bathrooms,
+  ...(property.sqft && {
+    floorSize: {
+      "@type": "QuantitativeValue",
+      value: property.sqft,
+      unitCode: "FTK",
+    },
+  }),
+};
+---
+
+<Base
+  title={property.metaTitle || `${property.title} | ${formatPrice(property.price, property.priceQualifier)}`}
+  description={property.metaDescription || `${summary}. ${address}`}
+  ogImage={ogImage}
+  jsonLd={jsonLd}
+>
+  <div class="container py-8 md:py-12">
+    <Breadcrumbs
+      items={[
+        { label: "Home", href: "/" },
+        { label: "Properties", href: "/properties" },
+        { label: property.title },
+      ]}
+    />
+
+    <!-- Gallery -->
+    {property.images?.length > 0 && (
+      <div class="mb-8">
+        <ImageGallery client:load images={property.images} title={property.title} />
+      </div>
+    )}
+
+    <div class="grid lg:grid-cols-3 gap-8 lg:gap-12">
+      <!-- Main Content -->
+      <div class="lg:col-span-2">
+        <!-- Header -->
+        <div class="mb-8">
+          <div class="flex items-center gap-3 mb-3">
+            <span class:list={["status-badge", statusColour(property.status)]}>
+              {statusLabel(property.status)}
+            </span>
+            {property.epc && <EpcBadge rating={property.epc} size="sm" />}
+          </div>
+
+          <h1 class="text-3xl md:text-4xl font-bold mb-2">{property.title}</h1>
+          <p class="text-gray-500 mb-4">{address}</p>
+
+          <p class="text-3xl md:text-4xl font-bold" style="color: var(--color-brand)">
+            {formatPrice(property.price, property.priceQualifier)}
+          </p>
+        </div>
+
+        <!-- Key stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          {property.bedrooms != null && (
+            <div class="bg-gray-50 rounded-lg p-4 text-center">
+              <p class="text-2xl font-bold">{property.bedrooms}</p>
+              <p class="text-xs text-gray-500 mt-1">Bedrooms</p>
+            </div>
+          )}
+          {property.bathrooms != null && (
+            <div class="bg-gray-50 rounded-lg p-4 text-center">
+              <p class="text-2xl font-bold">{property.bathrooms}</p>
+              <p class="text-xs text-gray-500 mt-1">Bathrooms</p>
+            </div>
+          )}
+          {property.receptionRooms != null && (
+            <div class="bg-gray-50 rounded-lg p-4 text-center">
+              <p class="text-2xl font-bold">{property.receptionRooms}</p>
+              <p class="text-xs text-gray-500 mt-1">Receptions</p>
+            </div>
+          )}
+          {property.sqft != null && (
+            <div class="bg-gray-50 rounded-lg p-4 text-center">
+              <p class="text-2xl font-bold">{property.sqft.toLocaleString("en-GB")}</p>
+              <p class="text-xs text-gray-500 mt-1">Sq Ft</p>
+            </div>
+          )}
+        </div>
+
+        <!-- Key Features -->
+        {property.features?.length > 0 && (
+          <div class="mb-8">
+            <h2 class="text-xl font-bold mb-4">Key Features</h2>
+            <ul class="grid md:grid-cols-2 gap-2">
+              {property.features.map((feature: string) => (
+                <li class="flex items-start gap-2 text-sm text-gray-700">
+                  <svg class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  {feature}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <!-- Description -->
+        {property.description && (
+          <div class="mb-8">
+            <h2 class="text-xl font-bold mb-4">Full Description</h2>
+            <div class="prose prose-gray max-w-none text-sm leading-relaxed">
+              <PortableText value={property.description} />
+            </div>
+          </div>
+        )}
+
+        <!-- Details table -->
+        <div class="mb-8">
+          <h2 class="text-xl font-bold mb-4">Property Details</h2>
+          <div class="bg-gray-50 rounded-lg overflow-hidden">
+            <table class="w-full text-sm">
+              <tbody>
+                {property.propertyType && (
+                  <tr class="border-b border-gray-200">
+                    <td class="py-3 px-4 font-medium text-gray-600 w-1/3">Type</td>
+                    <td class="py-3 px-4">{property.propertyType}</td>
+                  </tr>
+                )}
+                {property.tenure && (
+                  <tr class="border-b border-gray-200">
+                    <td class="py-3 px-4 font-medium text-gray-600">Tenure</td>
+                    <td class="py-3 px-4">{property.tenure}</td>
+                  </tr>
+                )}
+                {property.councilTaxBand && (
+                  <tr class="border-b border-gray-200">
+                    <td class="py-3 px-4 font-medium text-gray-600">Council Tax</td>
+                    <td class="py-3 px-4">Band {property.councilTaxBand}</td>
+                  </tr>
+                )}
+                {property.epc && (
+                  <tr>
+                    <td class="py-3 px-4 font-medium text-gray-600">EPC Rating</td>
+                    <td class="py-3 px-4"><EpcBadge rating={property.epc} size="sm" /></td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Floorplans -->
+        {property.floorplans?.length > 0 && (
+          <div class="mb-8">
+            <h2 class="text-xl font-bold mb-4">Floorplans</h2>
+            <FloorplansViewer client:visible floorplans={property.floorplans} />
+          </div>
+        )}
+
+        <!-- Virtual Tour -->
+        {property.virtualTourUrl && (
+          <div class="mb-8">
+            <h2 class="text-xl font-bold mb-4">Virtual Tour</h2>
+            <div class="aspect-video rounded-lg overflow-hidden border border-gray-200">
+              <iframe
+                src={property.virtualTourUrl}
+                class="w-full h-full"
+                allowfullscreen
+                loading="lazy"
+              />
+            </div>
+          </div>
+        )}
+
+        <!-- Video Tour -->
+        {property.videos?.length > 0 && (
+          <div class="mb-8">
+            <h2 class="text-xl font-bold mb-4">Video Tour</h2>
+            <VideoPlayer client:visible videos={property.videos} />
+          </div>
+        )}
+
+        <!-- Map -->
+        {property.location && (
+          <div class="mb-8">
+            <h2 class="text-xl font-bold mb-4">Location</h2>
+            <MapEmbed
+              client:visible
+              lat={property.location.lat}
+              lng={property.location.lng}
+              title={property.title}
+            />
+          </div>
+        )}
+
+        <!-- Similar Listings -->
+        <SimilarListings
+          client:load
+          property={{ _id: property._id, town: property.town, propertyType: property.propertyType }}
+          allProperties={allProperties}
+        />
+      </div>
+
+      <!-- Sidebar -->
+      <div class="lg:col-span-1">
+        <div class="sticky top-28 space-y-4">
+          <!-- Enquiry Form -->
+          <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+            <h3 class="text-lg font-bold mb-4">Enquire About This Property</h3>
+            <ContactForm
+              client:visible
+              propertyTitle={property.title}
+              branchEmail={property.branch?.email}
+            />
+          </div>
+
+          {property.agent && (
+            <div>
+              <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Your agent</p>
+              <AgentCard agent={property.agent} variant="compact" />
+            </div>
+          )}
+
+          <!-- Mortgage Calculator -->
+          <MortgageCalculator
+            client:visible
+            propertyPrice={property.price}
+          />
+
+          {property.branch && (
+            <div class="bg-white rounded-xl border border-gray-200 p-5 text-center">
+              <p class="font-semibold text-gray-900 mb-2">{property.branch.name}</p>
+              {property.branch.phone && (
+                <a href={`tel:${property.branch.phone}`} class="flex items-center justify-center gap-2 text-sm text-gray-700 hover:text-gray-900 transition-colors mb-1">
+                  <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                  <span>{property.branch.phone}</span>
+                </a>
+              )}
+              {property.branch.email && (
+                <a href={`mailto:${property.branch.email}`} class="flex items-center justify-center gap-2 text-sm text-gray-700 hover:text-gray-900 transition-colors">
+                  <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                  <span>{property.branch.email}</span>
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  </div>
+</Base>

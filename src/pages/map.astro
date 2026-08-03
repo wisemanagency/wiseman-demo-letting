@@ -1,0 +1,33 @@
+---
+import Base from "@/layouts/Base.astro";
+import MapSearch from "@/components/MapSearch";
+import { sanityClient } from "@/lib/sanity";
+import { allPropertiesQuery, allTownsQuery, allPropertyTypesQuery } from "@/lib/queries";
+
+// Fetch all properties with location data
+const properties = await sanityClient.fetch(allPropertiesQuery);
+const towns = await sanityClient.fetch(allTownsQuery);
+const propertyTypes = await sanityClient.fetch(allPropertyTypesQuery);
+
+// Filter to only properties with location coordinates for the map
+const mappableProperties = properties.filter((p: any) => p.location?.lat && p.location?.lng);
+
+// Calculate center from properties, fallback to London
+let centerLat = 51.5074;
+let centerLng = -0.1278;
+if (mappableProperties.length > 0) {
+  centerLat = mappableProperties.reduce((sum: number, p: any) => sum + p.location.lat, 0) / mappableProperties.length;
+  centerLng = mappableProperties.reduce((sum: number, p: any) => sum + p.location.lng, 0) / mappableProperties.length;
+}
+---
+
+<Base title="Map Search" description="Find properties on our interactive map. Search by area, filter by price, beds, and property type.">
+  <MapSearch
+    client:only="react"
+    properties={properties}
+    towns={towns}
+    propertyTypes={propertyTypes}
+    mapCenter={{ lat: centerLat, lng: centerLng }}
+    mapZoom={11}
+  />
+</Base>

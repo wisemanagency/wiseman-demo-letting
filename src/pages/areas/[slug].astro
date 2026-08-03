@@ -1,0 +1,71 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import PropertyGrid from "@/components/PropertyGrid.astro";
+import { sanityClient } from "@/lib/sanity";
+import { allAreasQuery, areaBySlugQuery, propertiesByAreaQuery } from "@/lib/queries";
+import { PortableText } from "@portabletext/react";
+
+export async function getStaticPaths() {
+  const areas = await sanityClient.fetch(allAreasQuery);
+  return areas.map((a: any) => ({ params: { slug: a.slug } }));
+}
+
+const { slug } = Astro.params;
+const area = await sanityClient.fetch(areaBySlugQuery, { slug });
+
+if (!area) {
+  return Astro.redirect("/404");
+}
+
+const properties = await sanityClient.fetch(propertiesByAreaQuery, { area: area.name });
+
+const heroUrl = area.heroImage?.asset?.url
+  ? `${area.heroImage.asset.url}?w=1400&h=500&fit=crop&auto=format`
+  : null;
+---
+
+<Base
+  title={area.metaTitle || `Properties in ${area.name}`}
+  description={area.metaDescription || `Browse homes for sale and to rent in ${area.name}. Local expertise and expert guidance.`}
+  ogImage={heroUrl || undefined}
+>
+  <!-- Hero -->
+  {heroUrl && (
+    <div class="relative h-64 md:h-80 overflow-hidden">
+      <img src={heroUrl} alt={area.name} class="w-full h-full object-cover" />
+      <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+      <div class="absolute bottom-0 left-0 container pb-8">
+        <h1 class="text-white text-4xl md:text-5xl font-bold">{area.name}</h1>
+      </div>
+    </div>
+  )}
+
+  <div class="container py-8 md:py-12">
+    <Breadcrumbs
+      items={[
+        { label: "Home", href: "/" },
+        { label: "Areas", href: "/areas" },
+        { label: area.name },
+      ]}
+    />
+
+    {!heroUrl && (
+      <h1 class="text-3xl md:text-4xl font-bold mb-6">Properties in {area.name}</h1>
+    )}
+
+    <!-- Area description (local SEO content) -->
+    {area.description && (
+      <div class="prose prose-gray max-w-3xl mb-12 text-sm leading-relaxed">
+        <PortableText value={area.description} />
+      </div>
+    )}
+
+    <!-- Listings in this area -->
+    <h2 class="text-2xl font-bold mb-6">
+      {properties.length} {properties.length === 1 ? "property" : "properties"} in {area.name}
+    </h2>
+
+    <PropertyGrid properties={properties} />
+  </div>
+</Base>

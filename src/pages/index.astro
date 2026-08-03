@@ -1,0 +1,105 @@
+---
+import Base from "@/layouts/Base.astro";
+import Hero from "@/components/Hero.astro";
+import PropertyGrid from "@/components/PropertyGrid.astro";
+import { sanityClient } from "@/lib/sanity";
+import { featuredPropertiesQuery, siteSettingsQuery, allAreasQuery } from "@/lib/queries";
+
+const settings = await sanityClient.fetch(siteSettingsQuery);
+const properties = await sanityClient.fetch(featuredPropertiesQuery);
+const areas = await sanityClient.fetch(allAreasQuery);
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "RealEstateAgent",
+  name: settings?.siteName,
+  url: Astro.url.origin,
+  telephone: settings?.phone,
+  email: settings?.email,
+};
+---
+
+<Base jsonLd={jsonLd}>
+  <Hero siteName={settings?.siteName || "Estate Agent"} tagline={settings?.siteTagline} />
+
+  <!-- Featured Properties -->
+  <section class="container py-16 md:py-20">
+    <div class="flex items-end justify-between mb-10">
+      <div>
+        <h2 class="text-3xl md:text-4xl font-bold">Latest Properties</h2>
+        <p class="text-gray-500 mt-2">Freshly listed homes ready for viewing</p>
+      </div>
+      <a
+        href="/properties"
+        class="hidden md:inline-flex items-center gap-2 text-sm font-semibold transition-colors hover:opacity-80"
+        style="color: var(--color-brand)"
+      >
+        View all
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </a>
+    </div>
+
+    <PropertyGrid properties={properties} />
+
+    <div class="mt-8 text-center md:hidden">
+      <a
+        href="/properties"
+        class="inline-block px-6 py-3 rounded-lg text-white font-semibold text-sm"
+        style="background: var(--color-brand)"
+      >
+        View All Properties
+      </a>
+    </div>
+  </section>
+
+  <!-- Areas We Cover -->
+  {areas?.length > 0 && (
+    <section class="bg-gray-50 py-16 md:py-20">
+      <div class="container">
+        <h2 class="text-3xl md:text-4xl font-bold mb-4">Areas We Cover</h2>
+        <p class="text-gray-500 mb-10">Local expertise across the communities we serve</p>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {areas.map((area: any) => (
+            <a
+              href={`/areas/${area.slug}`}
+              class="group relative aspect-[4/3] rounded-lg overflow-hidden bg-gray-200"
+            >
+              {area.heroImage?.asset?.url && (
+                <img
+                  src={`${area.heroImage.asset.url}?w=400&h=300&fit=crop&auto=format`}
+                  alt={area.name}
+                  class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                  loading="lazy"
+                />
+              )}
+              <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+              <div class="absolute bottom-0 left-0 p-4">
+                <h3 class="text-white font-bold text-lg">{area.name}</h3>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- CTA: Valuation -->
+  <section class="py-16 md:py-24">
+    <div class="container text-center">
+      <h2 class="text-3xl md:text-4xl font-bold mb-4">Thinking of Selling?</h2>
+      <p class="text-gray-500 max-w-lg mx-auto mb-8">
+        Get a free, no-obligation valuation from our local experts. We'll give you an honest appraisal of your property's worth.
+      </p>
+      <a
+        href="/valuation"
+        class="inline-block px-8 py-4 rounded-lg text-white font-semibold transition-opacity hover:opacity-90"
+        style="background: var(--color-brand)"
+      >
+        Book a Free Valuation
+      </a>
+    </div>
+  </section>
+</Base>

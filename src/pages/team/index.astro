@@ -1,0 +1,61 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import AgentCard from "@/components/AgentCard.astro";
+import { sanityClient } from "@/lib/sanity";
+import { allAgentsQuery, siteSettingsQuery } from "@/lib/queries";
+
+const agents = await sanityClient.fetch(allAgentsQuery);
+const settings = await sanityClient.fetch(siteSettingsQuery);
+const siteName = settings?.siteName || "Our Agency";
+---
+
+<Base
+  title={`Our Team | ${siteName}`}
+  description={`Meet the team at ${siteName}. Experienced estate agents ready to help you buy, sell, or rent your next home.`}
+>
+  <div class="container py-8 md:py-12">
+    <Breadcrumbs
+      items={[
+        { label: "Home", href: "/" },
+        { label: "Our Team" },
+      ]}
+    />
+
+    <div class="max-w-2xl mb-10">
+      <h1 class="text-3xl md:text-4xl font-bold mb-4">Meet Our Team</h1>
+      <p class="text-gray-500 text-lg">
+        Our experienced agents know the local market inside out. Whether you're buying, selling, or letting, we're here to guide you every step of the way.
+      </p>
+    </div>
+
+    {agents?.length > 0 ? (
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {agents.map((agent: any) => (
+          <AgentCard agent={agent} variant="full" />
+        ))}
+      </div>
+    ) : (
+      <div class="text-center py-16">
+        <p class="text-gray-500 text-lg">Team members coming soon.</p>
+      </div>
+    )}
+  </div>
+
+  <!-- CTA -->
+  <section class="bg-gray-50 py-12 md:py-16">
+    <div class="container text-center">
+      <h2 class="text-2xl md:text-3xl font-bold mb-3">Want to Join Our Team?</h2>
+      <p class="text-gray-500 max-w-lg mx-auto mb-6">
+        We're always looking for talented agents who share our passion for property.
+      </p>
+      <a
+        href="/contact"
+        class="inline-block px-6 py-3 rounded-lg text-white font-semibold text-sm transition-opacity hover:opacity-90"
+        style="background: var(--color-brand)"
+      >
+        Get in Touch
+      </a>
+    </div>
+  </section>
+</Base>

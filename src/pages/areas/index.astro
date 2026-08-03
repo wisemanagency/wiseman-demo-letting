@@ -1,0 +1,49 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import { sanityClient } from "@/lib/sanity";
+import { allAreasQuery } from "@/lib/queries";
+
+const areas = await sanityClient.fetch(allAreasQuery);
+---
+
+<Base title="Areas We Cover" description="Explore the areas where we help people buy, sell, and rent homes.">
+  <div class="container py-8 md:py-12">
+    <Breadcrumbs
+      items={[
+        { label: "Home", href: "/" },
+        { label: "Areas" },
+      ]}
+    />
+
+    <h1 class="text-3xl md:text-4xl font-bold mb-4">Areas We Cover</h1>
+    <p class="text-gray-500 mb-10 max-w-2xl">
+      Browse properties by area. Each neighbourhood page includes local insights, transport links, and all available listings.
+    </p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {areas.map((area: any) => (
+        <a
+          href={`/areas/${area.slug}`}
+          class="group relative aspect-[4/3] rounded-xl overflow-hidden bg-gray-200 shadow-sm"
+        >
+          {area.heroImage?.asset?.url && (
+            <img
+              src={`${area.heroImage.asset.url}?w=600&h=450&fit=crop&auto=format`}
+              alt={area.name}
+              class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+              loading="lazy"
+            />
+          )}
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          <div class="absolute bottom-0 left-0 p-5">
+            <h2 class="text-white font-bold text-xl mb-1">{area.name}</h2>
+            <span class="text-white/60 text-sm group-hover:text-white/80 transition-colors">
+              View properties →
+            </span>
+          </div>
+        </a>
+      ))}
+    </div>
+  </div>
+</Base>

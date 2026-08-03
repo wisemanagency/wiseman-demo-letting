@@ -1,0 +1,97 @@
+---
+import { formatPrice, statusLabel, statusColour } from "@/lib/utils";
+
+interface Props {
+  property: {
+    slug: string;
+    title: string;
+    status: string;
+    propertyType?: string;
+    price: number;
+    priceQualifier?: string;
+    bedrooms?: number;
+    bathrooms?: number;
+    sqft?: number;
+    town?: string;
+    postcode?: string;
+    thumbnail?: {
+      asset: { url: string; metadata?: { lqip?: string } };
+      alt?: string;
+    };
+  };
+}
+
+const { property } = Astro.props;
+const {
+  slug,
+  title,
+  status,
+  price,
+  priceQualifier,
+  bedrooms,
+  bathrooms,
+  sqft,
+  town,
+  postcode,
+  thumbnail,
+} = property;
+
+const imageUrl = thumbnail?.asset?.url
+  ? `${thumbnail.asset.url}?w=600&h=400&fit=crop&auto=format`
+  : "/floorplan-placeholder.svg";
+const lqip = thumbnail?.asset?.metadata?.lqip;
+---
+
+<a href={`/properties/${slug}`} class="property-card block bg-white rounded-lg overflow-hidden shadow-sm border border-gray-100">
+  <div class="relative aspect-[3/2] overflow-hidden bg-gray-100">
+    <img
+      src={imageUrl}
+      alt={thumbnail?.alt || title}
+      loading="lazy"
+      decoding="async"
+      class="w-full h-full object-cover"
+      style={lqip ? `background-image: url(${lqip}); background-size: cover;` : ""}
+    />
+    <span class:list={["status-badge absolute top-3 left-3", statusColour(status)]}>
+      {statusLabel(status)}
+    </span>
+  </div>
+
+  <div class="p-4 md:p-5">
+    <p class="text-xl md:text-2xl font-bold mb-1" style="font-family: var(--font-display)">
+      {formatPrice(price, priceQualifier)}
+    </p>
+
+    <h3 class="text-sm font-semibold text-gray-800 mb-2 line-clamp-1">
+      {title}
+    </h3>
+
+    {(town || postcode) && (
+      <p class="text-xs text-gray-500 mb-3">
+        {[town, postcode].filter(Boolean).join(", ")}
+      </p>
+    )}
+
+    <div class="flex items-center gap-4 text-xs text-gray-500 border-t border-gray-100 pt-3">
+      {bedrooms != null && (
+        <span class="flex items-center gap-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4" />
+          </svg>
+          {bedrooms} bed
+        </span>
+      )}
+      {bathrooms != null && (
+        <span class="flex items-center gap-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M4 16h16M4 16V8a4 4 0 014-4h1" />
+          </svg>
+          {bathrooms} bath
+        </span>
+      )}
+      {sqft != null && (
+        <span>{sqft.toLocaleString("en-GB")} sq ft</span>
+      )}
+    </div>
+  </div>
+</a>
