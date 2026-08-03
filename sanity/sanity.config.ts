@@ -7,7 +7,7 @@ const singletons = ["siteSettings"];
 
 export default defineConfig({
   name: "default",
-  title: "Real Estate Scaffold",
+  title: "Estate Agent Demo",
 
   projectId: process.env.SANITY_STUDIO_PROJECT_ID || process.env.SANITY_PROJECT_ID || "roizovwr",
   dataset: process.env.SANITY_STUDIO_DATASET || process.env.SANITY_DATASET || "production",
