@@ -68,5 +68,13 @@
       "trailingCommas": "es5",
       "semicolons": "always"
     }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    },
+    "formatter": {
+      "enabled": true
+    }
   }
 }

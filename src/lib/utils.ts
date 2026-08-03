@@ -35,8 +35,7 @@ export function statusLabel(status: string): string {
 export function statusColour(status: string): string {
   if (status === "for-sale" || status === "under-offer" || status === "sold-stc")
     return "badge-sale";
-  if (status === "for-rent" || status === "let-agreed" || status === "let")
-    return "badge-rent";
+  if (status === "for-rent" || status === "let-agreed" || status === "let") return "badge-rent";
   if (status === "sold") return "badge-sale";
   return "badge-muted";
 }

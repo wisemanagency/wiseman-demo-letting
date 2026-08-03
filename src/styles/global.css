@@ -8,30 +8,30 @@
 
 @theme {
   /* Brand colours */
-  --color-brand-navy: #0B3B70;
-  --color-brand-navy-dark: #082C57;
-  --color-brand-cyan: #1EBBEE;
-  --color-brand-cyan-dark: #0EA5D0;
-  --color-brand-orange: #EE7C1D;
-  --color-brand-orange-dark: #D96A10;
+  --color-brand-navy: #0b3b70;
+  --color-brand-navy-dark: #082c57;
+  --color-brand-cyan: #1ebbee;
+  --color-brand-cyan-dark: #0ea5d0;
+  --color-brand-orange: #ee7c1d;
+  --color-brand-orange-dark: #d96a10;
 
   /* Status colours */
-  --color-status-featured: #8BC34A;
-  --color-status-sale: #E53E3E;
-  --color-status-rent: #4A5568;
-  --color-status-hot: #E53E3E;
+  --color-status-featured: #8bc34a;
+  --color-status-sale: #e53e3e;
+  --color-status-rent: #4a5568;
+  --color-status-hot: #e53e3e;
 
   /* Surfaces */
-  --color-surface-page: #FFFFFF;
-  --color-surface-alt: #F5F7FA;
-  --color-surface-card: #FFFFFF;
+  --color-surface-page: #ffffff;
+  --color-surface-alt: #f5f7fa;
+  --color-surface-card: #ffffff;
 
   /* Borders + text */
-  --color-border-subtle: #E2E8F0;
-  --color-text-primary: #1A202C;
-  --color-text-secondary: #4A5568;
+  --color-border-subtle: #e2e8f0;
+  --color-text-primary: #1a202c;
+  --color-text-secondary: #4a5568;
   --color-text-muted: #718096;
-  --color-text-accent-muted: #C6A374;
+  --color-text-accent-muted: #c6a374;
 
   /* Typography */
   --font-sans: "Poppins", system-ui, sans-serif;
@@ -186,7 +186,9 @@ h6 {
   letter-spacing: 0.05em;
   text-decoration: none;
   cursor: pointer;
-  transition: background-color 0.15s ease, opacity 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    opacity 0.15s ease;
   border: 0;
 }
 .btn-primary {
@@ -258,7 +260,9 @@ h6 {
   border-radius: 6px;
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
   overflow: hidden;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 .card:hover {
   transform: translateY(-2px);
@@ -425,7 +429,9 @@ h6 {
 
 /* ----- Property card hover legacy ----- */
 .property-card {
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 .property-card:hover {
   transform: translateY(-2px);
