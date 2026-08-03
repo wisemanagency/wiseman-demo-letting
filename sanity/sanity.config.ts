@@ -9,7 +9,7 @@ export default defineConfig({
   name: "default",
   title: "Real Estate Scaffold",
 
-  projectId: process.env.SANITY_STUDIO_PROJECT_ID || process.env.SANITY_PROJECT_ID || "itpavex8",
+  projectId: process.env.SANITY_STUDIO_PROJECT_ID || process.env.SANITY_PROJECT_ID || "roizovwr",
   dataset: process.env.SANITY_STUDIO_DATASET || process.env.SANITY_DATASET || "production",
 
   plugins: [
