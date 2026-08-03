@@ -23,8 +23,8 @@ const siteName = settings?.siteName || "Our Agency";
     />
 
     <div class="max-w-2xl mb-10">
-      <h1 class="text-3xl md:text-4xl font-bold mb-4">Meet Our Team</h1>
-      <p class="text-gray-500 text-lg">
+      <h1 class="text-section-heading" style="text-align: left; font-size: 32px; margin-bottom: 16px;">Meet Our Team</h1>
+      <p style="color: var(--color-text-secondary); font-size: 17px;">
         Our experienced agents know the local market inside out. Whether you're buying, selling, or letting, we're here to guide you every step of the way.
       </p>
     </div>
@@ -37,25 +37,22 @@ const siteName = settings?.siteName || "Our Agency";
       </div>
     ) : (
       <div class="text-center py-16">
-        <p class="text-gray-500 text-lg">Team members coming soon.</p>
+        <p style="color: var(--color-text-muted); font-size: 17px;">Team members coming soon.</p>
       </div>
     )}
   </div>
 
   <!-- CTA -->
-  <section class="bg-gray-50 py-12 md:py-16">
+  <section class="section section-alt">
     <div class="container text-center">
-      <h2 class="text-2xl md:text-3xl font-bold mb-3">Want to Join Our Team?</h2>
-      <p class="text-gray-500 max-w-lg mx-auto mb-6">
+      <div class="section-heading">
+        <h2>Want to Join Our Team?</h2>
+        <p>We're always looking for talented agents</p>
+      </div>
+      <p style="max-width: 560px; margin: 0 auto 24px; color: var(--color-text-secondary); font-size: 15px;">
         We're always looking for talented agents who share our passion for property.
       </p>
-      <a
-        href="/contact"
-        class="inline-block px-6 py-3 rounded-lg text-white font-semibold text-sm transition-opacity hover:opacity-90"
-        style="background: var(--color-brand)"
-      >
-        Get in Touch
-      </a>
+      <a href="/contact" class="btn btn-primary">Get in Touch</a>
     </div>
   </section>
 </Base>

@@ -34,9 +34,9 @@ const heroUrl = area.heroImage?.asset?.url
   {heroUrl && (
     <div class="relative h-64 md:h-80 overflow-hidden">
       <img src={heroUrl} alt={area.name} class="w-full h-full object-cover" />
-      <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+      <div class="absolute inset-0" style="background: rgba(11, 59, 112, 0.4);"></div>
       <div class="absolute bottom-0 left-0 container pb-8">
-        <h1 class="text-white text-4xl md:text-5xl font-bold">{area.name}</h1>
+        <h1 class="text-page-hero" style="color: #fff;">{area.name}</h1>
       </div>
     </div>
   )}
@@ -51,7 +51,7 @@ const heroUrl = area.heroImage?.asset?.url
     />
 
     {!heroUrl && (
-      <h1 class="text-3xl md:text-4xl font-bold mb-6">Properties in {area.name}</h1>
+      <h1 class="text-section-heading" style="text-align: left; font-size: 32px; margin-bottom: 24px;">Properties in {area.name}</h1>
     )}
 
     <!-- Area description (local SEO content) -->
@@ -62,7 +62,7 @@ const heroUrl = area.heroImage?.asset?.url
     )}
 
     <!-- Listings in this area -->
-    <h2 class="text-2xl font-bold mb-6">
+    <h2 class="text-section-heading" style="text-align: left; font-size: 22px; margin-bottom: 24px;">
       {properties.length} {properties.length === 1 ? "property" : "properties"} in {area.name}
     </h2>
 

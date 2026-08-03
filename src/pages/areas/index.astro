@@ -16,16 +16,19 @@ const areas = await sanityClient.fetch(allAreasQuery);
       ]}
     />
 
-    <h1 class="text-3xl md:text-4xl font-bold mb-4">Areas We Cover</h1>
-    <p class="text-gray-500 mb-10 max-w-2xl">
-      Browse properties by area. Each neighbourhood page includes local insights, transport links, and all available listings.
-    </p>
+    <div class="section-heading" style="text-align: left; margin-bottom: 40px;">
+      <h2 style="font-size: 32px; margin-bottom: 8px;">Areas We Cover</h2>
+      <p style="color: var(--color-text-secondary); font-size: 15px; text-transform: none; letter-spacing: 0; font-weight: 400; margin-top: 8px;">
+        Browse properties by area. Each neighbourhood page includes local insights, transport links, and all available listings.
+      </p>
+    </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {areas.map((area: any) => (
         <a
           href={`/areas/${area.slug}`}
-          class="group relative aspect-[4/3] rounded-xl overflow-hidden bg-gray-200 shadow-sm"
+          class="group relative aspect-[4/3] rounded-md overflow-hidden bg-gray-200 card"
+          style="box-shadow: 0 2px 8px rgba(15,23,42,0.06);"
         >
           {area.heroImage?.asset?.url && (
             <img
@@ -37,8 +40,8 @@ const areas = await sanityClient.fetch(allAreasQuery);
           )}
           <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
           <div class="absolute bottom-0 left-0 p-5">
-            <h2 class="text-white font-bold text-xl mb-1">{area.name}</h2>
-            <span class="text-white/60 text-sm group-hover:text-white/80 transition-colors">
+            <h2 style="color: #fff; font-size: 18px; font-weight: 600; margin-bottom: 4px;">{area.name}</h2>
+            <span style="color: rgba(255,255,255,0.7); font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">
               View properties →
             </span>
           </div>

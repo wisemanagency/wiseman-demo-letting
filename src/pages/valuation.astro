@@ -14,10 +14,10 @@ import ContactForm from "@/components/ContactForm";
     />
 
     <div class="max-w-3xl mx-auto text-center mb-12">
-      <h1 class="text-3xl md:text-5xl font-bold mb-4">
+      <h1 class="text-page-hero" style="margin-bottom: 16px;">
         What's Your Property Worth?
       </h1>
-      <p class="text-gray-500 text-lg">
+      <p style="color: var(--color-text-secondary); font-size: 17px;">
         Book a free, no-obligation valuation. Our local experts will visit your property and give you an honest, market-led appraisal.
       </p>
     </div>
@@ -25,7 +25,7 @@ import ContactForm from "@/components/ContactForm";
     <div class="grid md:grid-cols-2 gap-12 max-w-5xl mx-auto">
       <!-- Benefits -->
       <div>
-        <h2 class="text-xl font-bold mb-6">Why Choose Us?</h2>
+        <h2 class="text-section-heading" style="text-align: left; font-size: 22px; margin-bottom: 24px;">Why Choose Us?</h2>
         <div class="space-y-5">
           {[
             { title: "Local Market Expertise", desc: "We know your area inside out — from pricing trends to buyer demand." },
@@ -34,14 +34,14 @@ import ContactForm from "@/components/ContactForm";
             { title: "Quick Turnaround", desc: "Book today, get your valuation within 48 hours." },
           ].map((item) => (
             <div class="flex items-start gap-4">
-              <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-green-100">
-                <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style="background: rgba(139, 195, 74, 0.18);">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--color-status-featured);">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                 </svg>
               </div>
               <div>
-                <p class="font-semibold text-sm">{item.title}</p>
-                <p class="text-sm text-gray-500 mt-0.5">{item.desc}</p>
+                <p style="font-weight: 600; font-size: 15px; margin-bottom: 4px;">{item.title}</p>
+                <p style="font-size: 14px; color: var(--color-text-secondary);">{item.desc}</p>
               </div>
             </div>
           ))}
@@ -49,8 +49,8 @@ import ContactForm from "@/components/ContactForm";
       </div>
 
       <!-- Form -->
-      <div class="bg-white rounded-xl border border-gray-200 p-6 md:p-8 shadow-sm">
-        <h2 class="text-xl font-bold mb-6">Request Your Free Valuation</h2>
+      <div class="card card-body">
+        <h2 class="text-section-heading" style="text-align: left; font-size: 20px; margin-bottom: 24px;">Request Your Free Valuation</h2>
         <ContactForm client:visible />
       </div>
     </div>
