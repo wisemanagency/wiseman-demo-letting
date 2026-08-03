@@ -14,17 +14,15 @@ interface Props {
 
 const settings = await sanityClient.fetch(siteSettingsQuery);
 const {
-  title = settings?.defaultMetaTitle || "Property Listings",
+  title = settings?.defaultMetaTitle || "Estate Agent Demo",
   description = settings?.defaultMetaDescription,
   ogImage = settings?.ogImage?.asset?.url,
   jsonLd,
   noindex,
 } = Astro.props;
 
-const siteName = settings?.siteName || "Estate Agent";
+const siteName = settings?.siteName || "Estate Agent Demo";
 const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
-const primaryColour = settings?.primaryColour || "#1a3a5c";
-const secondaryColour = settings?.secondaryColour || "#c9a84c";
 ---
 
 <!doctype html>
@@ -43,12 +41,6 @@ const secondaryColour = settings?.secondaryColour || "#c9a84c";
       <link rel="icon" type="image/png" href={settings.favicon.asset.url} />
     )}
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style set:html={`
-      :root {
-        --color-brand: ${primaryColour};
-        --color-accent: ${secondaryColour};
-      }
-    `} />
     {settings?.googleAnalyticsId && (
       <script
         is:inline
@@ -59,53 +51,25 @@ const secondaryColour = settings?.secondaryColour || "#c9a84c";
   </head>
   <body class="min-h-screen flex flex-col">
     <!-- Header -->
-    <header class="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-100">
-      <div class="container flex items-center justify-between h-16 md:h-20">
-        <a href="/" class="flex items-center gap-3">
-          {settings?.logo?.asset?.url ? (
-            <img
-              src={settings.logo.asset.url}
-              alt={siteName}
-              class="h-10 md:h-12 w-auto"
-            />
-          ) : (
-            <span class="text-xl font-bold" style={`color: var(--color-brand)`}>
-              {siteName}
-            </span>
-          )}
+    <header class="site-header">
+      <div class="container flex items-center justify-between">
+        <a href="/" class="wordmark">
+          {siteName}
         </a>
 
-        <nav class="hidden md:flex items-center gap-8 text-sm font-medium">
-          <a href="/properties" class="hover:text-[var(--color-brand)] transition-colors">
-            Properties
-          </a>
-          <a href="/map" class="hover:text-[var(--color-brand)] transition-colors">
-            Map Search
-          </a>
-          <a href="/areas" class="hover:text-[var(--color-brand)] transition-colors">
-            Areas
-          </a>
-          <a href="/team" class="hover:text-[var(--color-brand)] transition-colors">
-            Our Team
-          </a>
-          <a href="/about" class="hover:text-[var(--color-brand)] transition-colors">
-            About
-          </a>
-          <a href="/contact" class="hover:text-[var(--color-brand)] transition-colors">
-            Contact
-          </a>
-          <a
-            href="/valuation"
-            class="px-5 py-2.5 rounded text-white text-sm font-semibold transition-opacity hover:opacity-90"
-            style="background: var(--color-brand)"
-          >
-            Book Valuation
-          </a>
+        <nav class="site-nav hidden md:flex">
+          <a href="/properties" class="nav-link">Properties</a>
+          <a href="/map" class="nav-link">Map Search</a>
+          <a href="/areas" class="nav-link">Areas</a>
+          <a href="/team" class="nav-link">Our Team</a>
+          <a href="/about" class="nav-link">About</a>
+          <a href="/contact" class="nav-link">Contact</a>
+          <a href="/valuation" class="btn btn-primary nav-cta">Book Valuation</a>
         </nav>
 
         <!-- Mobile menu button -->
         <button
-          class="md:hidden p-2"
+          class="md:hidden p-2 text-white"
           aria-label="Open menu"
           onclick="document.getElementById('mobile-menu')?.classList.toggle('hidden')"
         >
@@ -116,21 +80,15 @@ const secondaryColour = settings?.secondaryColour || "#c9a84c";
       </div>
 
       <!-- Mobile menu -->
-      <div id="mobile-menu" class="hidden md:hidden border-t border-gray-100 bg-white">
-        <nav class="container py-4 flex flex-col gap-3 text-sm font-medium">
-          <a href="/properties" class="py-2">Properties</a>
-          <a href="/map" class="py-2">Map Search</a>
-          <a href="/areas" class="py-2">Areas</a>
-          <a href="/team" class="py-2">Our Team</a>
-          <a href="/about" class="py-2">About</a>
-          <a href="/contact" class="py-2">Contact</a>
-          <a
-            href="/valuation"
-            class="mt-2 px-5 py-2.5 rounded text-white text-sm font-semibold text-center"
-            style="background: var(--color-brand)"
-          >
-            Book Valuation
-          </a>
+      <div id="mobile-menu" class="hidden md:hidden site-mobile-menu">
+        <nav>
+          <a href="/properties">Properties</a>
+          <a href="/map">Map Search</a>
+          <a href="/areas">Areas</a>
+          <a href="/team">Our Team</a>
+          <a href="/about">About</a>
+          <a href="/contact">Contact</a>
+          <a href="/valuation" class="btn btn-primary" style="margin: 12px 20px;">Book Valuation</a>
         </nav>
       </div>
     </header>
@@ -141,54 +99,55 @@ const secondaryColour = settings?.secondaryColour || "#c9a84c";
     </main>
 
     <!-- Footer -->
-    <footer class="bg-gray-900 text-gray-300 mt-auto">
+    <footer class="site-footer mt-auto">
       <div class="container py-12 md:py-16">
         <div class="grid md:grid-cols-3 gap-10">
           <div>
-            <p class="text-white font-semibold text-lg mb-3">{siteName}</p>
+            <h4>{siteName}</h4>
             {settings?.phone && (
-              <p class="mb-1">
-                <a href={`tel:${settings.phone}`} class="hover:text-white transition-colors">
-                  {settings.phone}
-                </a>
-              </p>
+              <div class="footer-link">
+                <a href={`tel:${settings.phone}`}>{settings.phone}</a>
+              </div>
             )}
             {settings?.email && (
-              <p>
-                <a href={`mailto:${settings.email}`} class="hover:text-white transition-colors">
-                  {settings.email}
-                </a>
-              </p>
+              <div class="footer-link">
+                <a href={`mailto:${settings.email}`}>{settings.email}</a>
+              </div>
             )}
           </div>
           <div>
-            <p class="text-white font-semibold mb-3">Quick Links</p>
-            <nav class="flex flex-col gap-2 text-sm">
-              <a href="/properties" class="hover:text-white transition-colors">All Properties</a>
-              <a href="/areas" class="hover:text-white transition-colors">Areas We Cover</a>
-              <a href="/valuation" class="hover:text-white transition-colors">Free Valuation</a>
-              <a href="/contact" class="hover:text-white transition-colors">Contact Us</a>
+            <h4>Quick Links</h4>
+            <nav class="flex flex-col">
+              <div class="footer-link"><a href="/properties">All Properties</a></div>
+              <div class="footer-link"><a href="/areas">Areas We Cover</a></div>
+              <div class="footer-link"><a href="/valuation">Free Valuation</a></div>
+              <div class="footer-link"><a href="/contact">Contact Us</a></div>
             </nav>
           </div>
           <div>
             {settings?.socialLinks?.length > 0 && (
-              <p class="text-white font-semibold mb-3">Follow Us</p>
-              <div class="flex gap-4">
-                {settings.socialLinks.map((link: { platform: string; url: string }) => (
-                  <a
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="hover:text-white transition-colors text-sm"
-                  >
-                    {link.platform}
-                  </a>
-                ))}
-              </div>
+              <>
+                <h4>Follow Us</h4>
+                <div class="flex gap-4">
+                  {settings.socialLinks.map((link: { platform: string; url: string }) => (
+                    <a
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="text-sm"
+                    >
+                      {link.platform}
+                    </a>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         </div>
-        <div class="border-t border-gray-700 mt-10 pt-6 text-sm text-gray-500">
+      </div>
+      <div class="footer-bottom">
+        <div class="container">
+          <div class="wordmark">{siteName}</div>
           {settings?.footerText || `© ${new Date().getFullYear()} ${siteName}. All rights reserved.`}
         </div>
       </div>
