@@ -472,10 +472,10 @@ body.nav-open {
   margin-bottom: 4px;
 }
 
-/* ----- Subpage hero banner (~360px, navy overlay over image) ----- */
+/* ----- Subpage hero banner (~300px, navy overlay over image) ----- */
 .page-hero {
   position: relative;
-  height: 360px;
+  height: 300px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -486,7 +486,7 @@ body.nav-open {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(11, 59, 112, 0.4);
+  background: rgba(11, 59, 112, 0.3);
 }
 .page-hero .bg-image {
   position: absolute;
