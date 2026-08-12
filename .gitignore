@@ -27,3 +27,6 @@ sanity/.sanity/
 
 # Memory / personal notes
 MEMORY.md
+
+.vercel
+.env*

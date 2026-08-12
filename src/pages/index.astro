@@ -1,13 +1,27 @@
 ---
 import Base from "@/layouts/Base.astro";
 import Hero from "@/components/Hero.astro";
-import PropertyGrid from "@/components/PropertyGrid.astro";
+import ListingsCTA from "@/components/ListingsCTA.astro";
+import BookEvalBar from "@/components/BookEvalBar.astro";
 import { sanityClient } from "@/lib/sanity";
-import { featuredPropertiesQuery, siteSettingsQuery, allAreasQuery } from "@/lib/queries";
+import {
+  featuredPropertiesQuery,
+  siteSettingsQuery,
+  allAreasQuery,
+  allAgentsQuery,
+  allPropertiesQuery,
+} from "@/lib/queries";
+import { formatPrice, statusLabel } from "@/lib/utils";
 
 const settings = await sanityClient.fetch(siteSettingsQuery);
 const properties = await sanityClient.fetch(featuredPropertiesQuery);
 const areas = await sanityClient.fetch(allAreasQuery);
+const agents = await sanityClient.fetch(allAgentsQuery);
+const allProperties = await sanityClient.fetch(allPropertiesQuery);
+
+const featuredForHero = properties?.[0];
+// Always use the dedicated hero asset; it has the right crop + overlay contrast.
+const heroBg = "/estate-demo-hero.webp";
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -17,83 +31,286 @@ const jsonLd = {
   telephone: settings?.phone,
   email: settings?.email,
 };
+
+// Build a map of area slug → property count for the tiles
+const countsByArea: Record<string, number> = {};
+for (const p of allProperties ?? []) {
+  if (!p?.town) continue;
+  countsByArea[p.town] = (countsByArea[p.town] ?? 0) + 1;
+}
+const townToSlug: Record<string, string> = {
+  "Sampletown North": "sampletown-north",
+  "Sampletown South": "sampletown-south",
+  "Sampletown West": "sampletown-west",
+};
+
+// 8 tiles for "Explore Our Properties" — 4 across × 2 rows
+const exploreProperties = (allProperties ?? []).slice(0, 8);
 ---
 
 <Base jsonLd={jsonLd}>
-  <Hero siteName={settings?.siteName || "Estate Agent"} tagline={settings?.siteTagline} />
+  <!-- 1. Hero -->
+  <Hero
+    siteName={settings?.siteName || "Estate Agent Demo"}
+    tagline={settings?.siteTagline}
+    featured={featuredForHero
+      ? {
+          title: featuredForHero.title,
+          slug: featuredForHero.slug,
+          price: featuredForHero.price,
+          priceQualifier: featuredForHero.priceQualifier,
+          bedrooms: featuredForHero.bedrooms,
+          bathrooms: featuredForHero.bathrooms,
+          sqft: featuredForHero.sqft,
+          thumbnail: featuredForHero.thumbnail,
+        }
+      : undefined}
+    backgroundImage={heroBg}
+  />
 
-  <!-- Featured Properties -->
-  <section class="section">
-    <div class="container">
-      <div class="flex items-end justify-between mb-10">
-        <div>
-          <h2 class="text-section-heading" style="text-align: left; font-size: 28px; font-weight: 600; line-height: 1.3;">Latest Properties</h2>
-          <p class="text-meta" style="margin-top: 8px; color: var(--color-text-muted); font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em;">Freshly listed homes ready for viewing</p>
+  <!-- 2. Listings CTA -->
+  <ListingsCTA />
+
+  <!-- 2b. Book Eval Bar -->
+  <BookEvalBar />
+
+  <!-- 3. Explore our properties (4-col tile grid, 2 rows) -->
+  {exploreProperties.length > 0 && (
+    <section class="section section-alt">
+      <div class="container">
+        <div class="section-heading">
+          <h2>Explore Our Properties</h2>
+          <p>Browse the latest listings across our portfolio</p>
         </div>
-        <a
-          href="/properties"
-          class="hidden md:inline-flex chevron-link"
-        >
-          View all
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-          </svg>
-        </a>
+
+        <div class="explore-properties-grid">
+          {exploreProperties.map((property: any) => {
+            const img = property.thumbnail?.asset?.url
+              ? `${property.thumbnail.asset.url}?w=400&h=400&fit=crop&auto=format`
+              : "/floorplan-placeholder.svg";
+            return (
+              <a href={`/properties/${property.slug}`} class="property-tile">
+                <img src={img} alt={property.thumbnail?.alt || property.title} loading="lazy" />
+                <span class="property-tile-explore">More Details</span>
+                <div class="property-tile-labels">
+                  <span class="label-cat">{property.propertyType || "Property"}</span>
+                  <span class="label-status">{statusLabel(property.status)}</span>
+                </div>
+                <div class="property-tile-info">
+                  <p class="tile-price">{formatPrice(property.price, property.priceQualifier)}</p>
+                  <p class="tile-title">{property.title}</p>
+                  <p class="tile-meta">
+                    {property.bedrooms != null && <span>{property.bedrooms} bed</span>}
+                    {property.bathrooms != null && <span>{property.bathrooms} bath</span>}
+                    {property.sqft != null && <span>{property.sqft.toLocaleString("en-GB")} sq ft</span>}
+                  </p>
+                </div>
+              </a>
+            );
+          })}
+        </div>
       </div>
+    </section>
+  )}
 
-      <PropertyGrid properties={properties} />
-
-      <div class="mt-8 text-center md:hidden">
-        <a href="/properties" class="btn btn-primary">View All Properties</a>
+  <!-- 4. Inquiry band -->
+  <section class="section inquiry-band">
+    <div
+      class="inquiry-band-bg"
+      style="background-image: linear-gradient(135deg, var(--color-brand-navy) 0%, var(--color-brand-navy-dark) 100%);"
+    >
+    </div>
+    <div class="container inquiry-band-inner">
+      <div class="inquiry-band-copy">
+        <h2>Get a Free Property Valuation</h2>
+        <p>
+          Curious about your home's value? Tell us a few details and our local experts
+          will get back with an honest, no-obligation appraisal — usually within 48 hours.
+        </p>
+      </div>
+      <div class="inquiry-card">
+        <form action="/valuation" method="get">
+          <div class="form-grid">
+            <div class="full">
+              <label class="form-label" for="inq-type">Inquiry Type</label>
+              <select id="inq-type" name="type" class="form-field">
+                <option>Free Valuation</option>
+                <option>Book a Viewing</option>
+                <option>General Enquiry</option>
+              </select>
+            </div>
+            <div class="full">
+              <label class="form-label" for="inq-loc">Location</label>
+              <input id="inq-loc" type="text" name="location" class="form-field" placeholder="City or postcode" />
+            </div>
+            <div>
+              <label class="form-label" for="inq-beds">Beds</label>
+              <select id="inq-beds" name="beds" class="form-field">
+                <option>Any</option>
+                <option>1+</option>
+                <option>2+</option>
+                <option>3+</option>
+                <option>4+</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label" for="inq-baths">Baths</label>
+              <select id="inq-baths" name="baths" class="form-field">
+                <option>Any</option>
+                <option>1+</option>
+                <option>2+</option>
+                <option>3+</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label" for="inq-min">Min Price (£)</label>
+              <input id="inq-min" type="text" name="minPrice" class="form-field" placeholder="200,000" />
+            </div>
+            <div>
+              <label class="form-label" for="inq-max">Max Price (£)</label>
+              <input id="inq-max" type="text" name="maxPrice" class="form-field" placeholder="500,000" />
+            </div>
+            <div class="full">
+              <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">
+                Submit Inquiry
+              </button>
+            </div>
+          </div>
+        </form>
       </div>
     </div>
   </section>
 
-  <!-- Areas We Cover -->
+  <!-- 5. Areas we cover -->
   {areas?.length > 0 && (
-    <section class="section section-alt">
+    <section class="section">
       <div class="container">
         <div class="section-heading">
           <h2>Areas We Cover</h2>
           <p>Local expertise across the communities we serve</p>
         </div>
 
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {areas.map((area: any) => (
-            <a
-              href={`/areas/${area.slug}`}
-              class="group relative aspect-[4/3] rounded-md overflow-hidden bg-gray-200"
-            >
-              {area.heroImage?.asset?.url && (
-                <img
-                  src={`${area.heroImage.asset.url}?w=400&h=300&fit=crop&auto=format`}
-                  alt={area.name}
-                  class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                  loading="lazy"
-                />
-              )}
-              <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-              <div class="absolute bottom-0 left-0 p-4">
-                <h3 style="color: #fff; font-size: 17px; font-weight: 500;">{area.name}</h3>
-              </div>
-            </a>
-          ))}
+        <div class="areas-grid">
+          {areas.map((area: any) => {
+            const areaSlug = area.slug || townToSlug[area.name] || "";
+            const img = area.heroImage?.asset?.url
+              ? `${area.heroImage.asset.url}?w=400&h=400&fit=crop&auto=format`
+              : null;
+            const count = countsByArea[area.name] ?? 0;
+            return (
+              <a href={`/areas/${areaSlug}`} class="area-tile">
+                {img ? (
+                  <img src={img} alt={area.name} loading="lazy" />
+                ) : (
+                  <div style="width:100%;height:100%;background:var(--color-surface-alt);"></div>
+                )}
+                <span class="area-tile-label">
+                  {area.name}
+                  <span class="area-tile-count">{count} {count === 1 ? "property" : "properties"}</span>
+                </span>
+              </a>
+            );
+          })}
         </div>
       </div>
     </section>
   )}
 
-  <!-- CTA: Valuation -->
-  <section class="section">
-    <div class="container" style="text-align: center;">
+  <!-- 6. Why us — dark navy band -->
+  <section class="section why-band">
+    <div class="container">
+      <div class="section-heading">
+        <h2 style="color: #fff;">Why Estate Agent Demo?</h2>
+        <p>The perfect choice for sales, lettings & valuations</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+        <div class="feature-block">
+          <span class="feature-num">01.</span>
+          <h3>Local Expertise</h3>
+          <div class="feature-divider"></div>
+          <p>
+            Deep knowledge of the neighbourhoods we cover. We've walked the streets,
+            visited the schools and know which streets catch the afternoon sun.
+          </p>
+        </div>
+
+        <div class="feature-block">
+          <span class="feature-num">02.</span>
+          <h3>Personal Service</h3>
+          <div class="feature-divider"></div>
+          <p>
+            A named agent from your first viewing through to completion. No call
+            centres, no scripts — just real conversations with people who care.
+          </p>
+        </div>
+
+        <div class="feature-block">
+          <span class="feature-num">03.</span>
+          <h3>Honest Valuations</h3>
+          <div class="feature-divider"></div>
+          <p>
+            We tell you what your home is really worth, not what we wish it was.
+            Accurate appraisals mean faster sales and fewer fall-throughs.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. Meet the team -->
+  {agents?.length > 0 && (
+    <section class="section">
+      <div class="container">
+        <div class="section-heading">
+          <h2>Meet Our Estate Agents</h2>
+          <p>The friendly faces behind every viewing, sale & valuation</p>
+        </div>
+
+        <div class="agents-grid">
+          {agents.slice(0, 4).map((agent: any) => {
+            const photoUrl = agent.photo?.asset?.url
+              ? `${agent.photo.asset.url}?w=300&h=300&fit=crop&auto=format`
+              : null;
+            return (
+              <a href={`/team/${agent.slug}`} class="agent-tile">
+                <div class="agent-tile-photo">
+                  {photoUrl ? (
+                    <img src={photoUrl} alt={agent.name} loading="lazy" />
+                  ) : (
+                    <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--color-surface-alt);">
+                      <span style="font-size:32px;font-weight:700;color:var(--color-text-muted);">
+                        {agent.name.split(" ").map((n: string) => n[0]).join("")}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <h3>{agent.name}</h3>
+                <p class="agent-role">{agent.role}</p>
+                {agent.branch?.name && <p>{agent.branch.name}</p>}
+              </a>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- 8. CTA strip -->
+  <section class="section section-alt cta-strip">
+    <div class="container">
       <div class="section-heading">
         <h2>Thinking of Selling?</h2>
         <p>Honest appraisal from our local experts — free, no obligation</p>
       </div>
-      <p style="max-width: 560px; margin: 0 auto 32px; color: var(--color-text-secondary); font-size: 15px;">
-        Get a free, no-obligation valuation from our local experts. We'll give you an honest appraisal of your property's worth.
+      <p>
+        Get a free, no-obligation valuation from our local experts. We'll give you an
+        honest appraisal of your property's worth and walk you through the next steps at
+        your pace.
       </p>
-      <a href="/valuation" class="btn btn-primary" style="padding: 14px 32px;">Book a Free Valuation</a>
+      <a href="/valuation" class="btn btn-primary" style="padding: 14px 32px;">
+        Book a Free Valuation
+      </a>
     </div>
   </section>
 </Base>
