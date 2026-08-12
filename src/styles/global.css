@@ -486,7 +486,7 @@ body.nav-open {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(11, 59, 112, 0.3);
+  background: rgba(11, 59, 112, 0.45);
 }
 .page-hero .bg-image {
   position: absolute;
