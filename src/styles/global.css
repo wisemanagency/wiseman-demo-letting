@@ -300,16 +300,36 @@ h6 {
   top: 0;
   z-index: 50;
 }
+.site-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 64px;
+  gap: 12px;
+}
 .site-header .wordmark {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 20px;
+  font-size: 17px;
   color: #fff;
   letter-spacing: 0;
   text-decoration: none;
+  white-space: nowrap;
+}
+@media (min-width: 480px) {
+  .site-header .wordmark {
+    font-size: 19px;
+  }
+}
+@media (min-width: 1024px) {
+  .site-header .wordmark {
+    font-size: 20px;
+  }
 }
 .site-nav {
-  display: flex;
+  /* Display is controlled by Tailwind (hidden lg:flex) so the mobile
+     hamburger can take over below the lg breakpoint. We only set the
+     flex child layout here. */
   align-items: center;
   gap: 24px;
   height: 64px;
@@ -334,16 +354,75 @@ h6 {
 .site-mobile-menu {
   background: var(--color-brand-navy-dark);
   color: #fff;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 24px rgba(8, 44, 87, 0.25);
+  animation: mobile-menu-slide 180ms ease-out;
+}
+@keyframes mobile-menu-slide {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.site-mobile-menu nav {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0 16px;
 }
 .site-mobile-menu a {
-  display: block;
-  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  padding: 14px 20px;
   color: #fff;
   text-decoration: none;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  transition: background-color 0.15s ease;
+}
+.site-mobile-menu a:last-child {
+  border-bottom: none;
+}
+.site-mobile-menu a:hover,
+.site-mobile-menu a:focus-visible {
+  background-color: rgba(255, 255, 255, 0.06);
+}
+.site-mobile-menu a.btn {
+  margin: 16px 20px 4px;
+  justify-content: center;
+  border-bottom: none;
+}
+
+/* Hamburger button — only styled below the lg breakpoint so the
+   Tailwind `lg:hidden` utility (display: none) can take over at >= 1024px. */
+.site-hamburger {
+  border: none;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+@media (max-width: 1023.98px) {
+  .site-hamburger {
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+  }
+  .site-hamburger:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+  }
+  .site-hamburger svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+/* Body scroll lock while the mobile menu is open */
+body.nav-open {
+  overflow: hidden;
 }
 
 /* ----- Footer ----- */
@@ -524,12 +603,31 @@ h6 {
   align-items: center;
   justify-content: space-between;
   min-height: 40px;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 .topbar-left,
 .topbar-right {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 12px;
+}
+@media (min-width: 640px) {
+  .topbar-left,
+  .topbar-right {
+    gap: 24px;
+  }
+}
+.topbar a {
+  font-size: 12px;
+  white-space: nowrap;
+}
+/* Collapse the email link on the smallest phones to keep the topbar one row.
+   Higher specificity (.topbar a.topbar-email) beats the .topbar a display rule. */
+@media (max-width: 480px) {
+  .topbar a.topbar-email {
+    display: none;
+  }
 }
 
 /* =========================================================================
@@ -540,24 +638,51 @@ h6 {
   border-radius: 4px;
   box-shadow: 0 20px 50px rgba(8, 44, 87, 0.35), 0 4px 12px rgba(8, 44, 87, 0.18);
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   align-items: stretch;
   gap: 0;
   overflow: hidden;
 }
+@media (min-width: 1024px) {
+  .search-bar {
+    flex-wrap: nowrap;
+  }
+}
 .search-bar > .sb-cell {
-  flex: 1 1 0;
+  flex: 1 1 100%;
   min-width: 0;
 }
 .search-bar > .sb-cell:first-of-type {
-  flex: 1.4 1 0;
+  flex: 1.4 1 100%;
+}
+@media (min-width: 640px) {
+  .search-bar > .sb-cell {
+    flex: 1 1 50%;
+  }
+  .search-bar > .sb-cell:first-of-type {
+    flex: 1.4 1 100%;
+  }
+}
+@media (min-width: 1024px) {
+  .search-bar > .sb-cell {
+    flex: 1 1 0;
+  }
+  .search-bar > .sb-cell:first-of-type {
+    flex: 1.4 1 0;
+  }
 }
 .search-bar > .sb-submit {
-  flex: 0 0 auto;
+  flex: 1 1 100%;
+}
+@media (min-width: 1024px) {
+  .search-bar > .sb-submit {
+    flex: 0 0 auto;
+  }
 }
 .search-bar > .sb-cell {
   padding: 14px 18px;
   border-right: 1px solid var(--color-border-subtle);
+  border-bottom: 1px solid var(--color-border-subtle);
   background: transparent;
   font-family: var(--font-sans);
   color: var(--color-text-primary);
@@ -571,6 +696,11 @@ h6 {
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'><path d='M1 1l4 4 4-4' stroke='%23718096' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
   background-repeat: no-repeat;
   background-position: right 14px center;
+}
+@media (min-width: 1024px) {
+  .search-bar > .sb-cell {
+    border-bottom: none;
+  }
 }
 .search-bar > .sb-cell:last-of-type {
   border-right: 0;
@@ -641,7 +771,7 @@ h6 {
 .hero-inner {
   position: relative;
   z-index: 1;
-  padding: 96px 0 120px;
+  padding: 64px 0 120px;
   text-align: center;
 }
 .hero-meta {
@@ -665,7 +795,7 @@ h6 {
   background: rgba(255, 255, 255, 0.35);
 }
 .hero h1 {
-  font-size: 44px;
+  font-size: 32px;
   font-weight: 600;
   line-height: 1.15;
   color: #fff;
@@ -711,12 +841,34 @@ h6 {
   bottom: -40px;
   z-index: 2;
 }
+@media (min-width: 640px) {
+  .hero h1 {
+    font-size: 40px;
+  }
+}
 @media (min-width: 768px) {
   .hero h1 {
     font-size: 56px;
   }
   .hero-inner {
     padding: 120px 0 140px;
+  }
+}
+
+/* Mobile needs the same treatment so the pill row doesn't disappear
+   behind the overhanging search bar. */
+@media (max-width: 767.98px) {
+  .hero-inner {
+    padding-bottom: 240px;
+  }
+}
+/* Tablet (md → lg) gets a bit more breathing room between the subheading
+   and the overhanging search bar. We extend the hero's bottom padding at
+   tablet so the search bar drops lower without the pills disappearing
+   behind it. Declared after the 768px+ rule so this overrides it. */
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  .hero-inner {
+    padding-bottom: 260px;
   }
 }
 
@@ -1032,12 +1184,9 @@ h6 {
   grid-template-columns: repeat(2, 1fr);
   gap: 24px;
 }
-@media (min-width: 640px) {
-  .agents-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-@media (min-width: 900px) {
+/* Below the lg breakpoint the agents stay 2-up so 4 agents render as
+   a clean 2x2 grid instead of a staggered 3+1. */
+@media (min-width: 1024px) {
   .agents-grid {
     grid-template-columns: repeat(4, 1fr);
   }
@@ -1089,6 +1238,115 @@ h6 {
   color: var(--color-text-secondary);
   font-size: 15px;
   line-height: 1.6;
+}
+
+/* ---- Rich CTA strip — split layout (photo + checklist + trust) ---- */
+.cta-strip.cta-strip-rich {
+  text-align: left;
+  background: linear-gradient(135deg, #ffffff 0%, #e6f2fa 100%);
+}
+.cta-strip-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  align-items: center;
+}
+@media (min-width: 900px) {
+  .cta-strip-grid {
+    grid-template-columns: 1fr 1.15fr;
+    gap: 64px;
+  }
+}
+.cta-strip-image {
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 24px 56px -12px rgba(8, 44, 87, 0.22),
+              0 6px 18px -6px rgba(8, 44, 87, 0.12);
+  aspect-ratio: 4 / 3;
+}
+.cta-strip-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.cta-strip-eyebrow {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-brand-cyan);
+  background: rgba(45, 145, 199, 0.1);
+  padding: 6px 12px;
+  border-radius: 999px;
+  margin-bottom: 16px;
+}
+.cta-strip-copy h2 {
+  margin: 0 0 12px;
+}
+.cta-strip-sub {
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--color-text-secondary);
+  max-width: 540px;
+  margin: 0 0 24px;
+}
+.cta-checklist {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 28px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 24px;
+}
+@media (max-width: 480px) {
+  .cta-checklist {
+    grid-template-columns: 1fr;
+  }
+}
+.cta-checklist li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+.cta-checklist li svg {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  color: var(--color-brand-cyan);
+  background: rgba(45, 145, 199, 0.12);
+  padding: 4px;
+  border-radius: 50%;
+  box-sizing: content-box;
+}
+.cta-strip-btn {
+  padding: 14px 32px;
+  font-size: 16px;
+  box-shadow: 0 8px 20px -6px rgba(45, 145, 199, 0.55);
+}
+.cta-strip-btn:hover {
+  box-shadow: 0 12px 28px -8px rgba(45, 145, 199, 0.65);
+}
+.cta-trust {
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+.cta-trust-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.cta-trust-meta strong {
+  color: var(--color-text-primary);
+  font-weight: 600;
 }
 
 /* =========================================================================
@@ -1337,4 +1595,218 @@ h6 {
 }
 .scroll-top:hover {
   background: var(--color-brand-cyan-dark);
+}
+
+/* =========================================================================
+   Testimonials carousel — Google-reviews style
+   ========================================================================= */
+.testimonials-section {
+  /* Light background, generous vertical padding to separate from agents */
+  padding-block: clamp(64px, 8vw, 96px);
+}
+.testimonials-rail {
+  position: relative;
+  margin-top: 8px;
+}
+.testimonials-rail:focus {
+  outline: none;
+}
+.tc-viewport {
+  overflow: hidden;
+  padding: 8px 4px 24px; /* room for card shadow + hover lift */
+}
+.tc-track {
+  display: flex;
+  gap: 24px;
+  transition: transform 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: transform;
+}
+.tc-card {
+  flex: 0 0 calc((100% - 0px) / 1); /* mobile: 1 card, gap overridden per breakpoint */
+  background: #ffffff;
+  border: 1px solid var(--color-border-subtle, rgba(0, 0, 0, 0.06));
+  border-radius: 10px;
+  padding: 24px 24px 20px;
+  box-shadow: 0 4px 14px rgba(8, 44, 87, 0.06);
+  display: flex;
+  flex-direction: column;
+  min-height: 220px;
+  position: relative;
+}
+@media (min-width: 640px) {
+  .tc-card {
+    flex: 0 0 calc((100% - 24px) / 2);
+  }
+}
+@media (min-width: 900px) {
+  .tc-card {
+    flex: 0 0 calc((100% - 48px) / 3);
+  }
+}
+.tc-stars {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 14px;
+}
+.tc-quote {
+  margin: 0 0 20px;
+  flex: 1;
+}
+.tc-quote p {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--color-text-secondary, #4a5b73);
+  font-style: italic;
+}
+.tc-reviewer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+.tc-avatar {
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  /* Tint by avatar variant — soft brand colours */
+}
+.tc-avatar-a {
+  background: linear-gradient(135deg, #0b3b70 0%, #1f6fb2 100%);
+}
+.tc-avatar-b {
+  background: linear-gradient(135deg, #0d6e6e 0%, #2aa6a6 100%);
+}
+.tc-avatar-c {
+  background: linear-gradient(135deg, #8a3a3a 0%, #c45b5b 100%);
+}
+.tc-avatar-d {
+  background: linear-gradient(135deg, #5b3a8a 0%, #8c63c2 100%);
+}
+.tc-avatar-e {
+  background: linear-gradient(135deg, #8a6a3a 0%, #c6985b 100%);
+}
+.tc-meta {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+.tc-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary, #0b1a30);
+  line-height: 1.2;
+  margin: 0;
+}
+.tc-role {
+  font-size: 12px;
+  color: var(--color-text-muted, #6b7a90);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tc-google {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #f5f6f7;
+  padding: 2px;
+}
+.tc-date {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+  font-size: 11px;
+  color: var(--color-text-muted, #6b7a90);
+  letter-spacing: 0.01em;
+}
+.tc-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--color-brand-navy, #0b3b70);
+  border: 1px solid var(--color-border-subtle, rgba(0, 0, 0, 0.08));
+  box-shadow: 0 6px 18px rgba(8, 44, 87, 0.12);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+.tc-arrow:hover:not([disabled]) {
+  background: var(--color-brand-cyan, #2eb6e4);
+  color: #fff;
+  transform: translateY(-50%) scale(1.04);
+  box-shadow: 0 10px 24px rgba(46, 182, 228, 0.4);
+}
+.tc-arrow[disabled] {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.tc-arrow-prev {
+  left: -8px;
+}
+.tc-arrow-next {
+  right: -8px;
+}
+@media (max-width: 720px) {
+  /* On narrow screens tuck arrows inside, just outside the card edge */
+  .tc-arrow-prev {
+    left: 4px;
+  }
+  .tc-arrow-next {
+    right: 4px;
+  }
+}
+.tc-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+.tc-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(11, 59, 112, 0.2);
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  transition:
+    background-color 0.18s ease,
+    transform 0.18s ease,
+    width 0.25s ease;
+}
+.tc-dot:hover {
+  background: rgba(11, 59, 112, 0.4);
+}
+.tc-dot.is-active {
+  background: var(--color-brand-cyan, #2eb6e4);
+  width: 22px;
+  border-radius: 4px;
 }

@@ -3,6 +3,7 @@ import Base from "@/layouts/Base.astro";
 import Hero from "@/components/Hero.astro";
 import ListingsCTA from "@/components/ListingsCTA.astro";
 import BookEvalBar from "@/components/BookEvalBar.astro";
+import TestimonialsCarousel from "@/components/TestimonialsCarousel.astro";
 import { sanityClient } from "@/lib/sanity";
 import {
   featuredPropertiesQuery,
@@ -113,73 +114,7 @@ const exploreProperties = (allProperties ?? []).slice(0, 8);
     </section>
   )}
 
-  <!-- 4. Inquiry band -->
-  <section class="section inquiry-band">
-    <div
-      class="inquiry-band-bg"
-      style="background-image: linear-gradient(135deg, var(--color-brand-navy) 0%, var(--color-brand-navy-dark) 100%);"
-    >
-    </div>
-    <div class="container inquiry-band-inner">
-      <div class="inquiry-band-copy">
-        <h2>Get a Free Property Valuation</h2>
-        <p>
-          Curious about your home's value? Tell us a few details and our local experts
-          will get back with an honest, no-obligation appraisal — usually within 48 hours.
-        </p>
-      </div>
-      <div class="inquiry-card">
-        <form action="/valuation" method="get">
-          <div class="form-grid">
-            <div class="full">
-              <label class="form-label" for="inq-type">Inquiry Type</label>
-              <select id="inq-type" name="type" class="form-field">
-                <option>Free Valuation</option>
-                <option>Book a Viewing</option>
-                <option>General Enquiry</option>
-              </select>
-            </div>
-            <div class="full">
-              <label class="form-label" for="inq-loc">Location</label>
-              <input id="inq-loc" type="text" name="location" class="form-field" placeholder="City or postcode" />
-            </div>
-            <div>
-              <label class="form-label" for="inq-beds">Beds</label>
-              <select id="inq-beds" name="beds" class="form-field">
-                <option>Any</option>
-                <option>1+</option>
-                <option>2+</option>
-                <option>3+</option>
-                <option>4+</option>
-              </select>
-            </div>
-            <div>
-              <label class="form-label" for="inq-baths">Baths</label>
-              <select id="inq-baths" name="baths" class="form-field">
-                <option>Any</option>
-                <option>1+</option>
-                <option>2+</option>
-                <option>3+</option>
-              </select>
-            </div>
-            <div>
-              <label class="form-label" for="inq-min">Min Price (£)</label>
-              <input id="inq-min" type="text" name="minPrice" class="form-field" placeholder="200,000" />
-            </div>
-            <div>
-              <label class="form-label" for="inq-max">Max Price (£)</label>
-              <input id="inq-max" type="text" name="maxPrice" class="form-field" placeholder="500,000" />
-            </div>
-            <div class="full">
-              <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">
-                Submit Inquiry
-              </button>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
-  </section>
+  <!-- 4. Areas we cover -->
 
   <!-- 5. Areas we cover -->
   {areas?.length > 0 && (
@@ -296,21 +231,73 @@ const exploreProperties = (allProperties ?? []).slice(0, 8);
     </section>
   )}
 
-  <!-- 8. CTA strip -->
-  <section class="section section-alt cta-strip">
-    <div class="container">
-      <div class="section-heading">
-        <h2>Thinking of Selling?</h2>
-        <p>Honest appraisal from our local experts — free, no obligation</p>
+  <!-- 7b. Customer testimonials carousel -->
+  <TestimonialsCarousel />
+
+  <!-- 8. CTA strip — split layout with photo + checklist + trust badge -->
+  <section class="section cta-strip cta-strip-rich">
+    <div class="container cta-strip-grid">
+      <div class="cta-strip-image">
+        <img
+          src="/estate-office-outdoor.webp"
+          alt="Estate agent office exterior with sold sign"
+          loading="lazy"
+          decoding="async"
+        />
       </div>
-      <p>
-        Get a free, no-obligation valuation from our local experts. We'll give you an
-        honest appraisal of your property's worth and walk you through the next steps at
-        your pace.
-      </p>
-      <a href="/valuation" class="btn btn-primary" style="padding: 14px 32px;">
-        Book a Free Valuation
-      </a>
+
+      <div class="cta-strip-copy">
+        <span class="cta-strip-eyebrow">Free property valuation</span>
+        <h2>Thinking of Selling?</h2>
+        <p class="cta-strip-sub">
+          Get a free, no-obligation valuation from our local experts. We'll give you an
+          honest appraisal of your property's worth — usually within 48 hours.
+        </p>
+
+        <ul class="cta-checklist">
+          <li>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 6L9 17l-5-5" />
+            </svg>
+            <span>Free valuation</span>
+          </li>
+          <li>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 6L9 17l-5-5" />
+            </svg>
+            <span>No obligation</span>
+          </li>
+          <li>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 6L9 17l-5-5" />
+            </svg>
+            <span>Local expert</span>
+          </li>
+          <li>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 6L9 17l-5-5" />
+            </svg>
+            <span>Honest appraisal</span>
+          </li>
+        </ul>
+
+        <a href="/valuation" class="btn btn-primary cta-strip-btn">
+          Book a Free Valuation
+        </a>
+
+        <div class="cta-trust">
+          <span class="cta-trust-stars" aria-label="Rated 4.9 out of 5">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#f5b400" aria-hidden="true"><path d="M12 2.5l2.95 6 6.6.96-4.78 4.66 1.13 6.58L12 17.6l-5.9 3.1 1.13-6.58L2.45 9.46l6.6-.96L12 2.5z" /></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#f5b400" aria-hidden="true"><path d="M12 2.5l2.95 6 6.6.96-4.78 4.66 1.13 6.58L12 17.6l-5.9 3.1 1.13-6.58L2.45 9.46l6.6-.96L12 2.5z" /></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#f5b400" aria-hidden="true"><path d="M12 2.5l2.95 6 6.6.96-4.78 4.66 1.13 6.58L12 17.6l-5.9 3.1 1.13-6.58L2.45 9.46l6.6-.96L12 2.5z" /></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#f5b400" aria-hidden="true"><path d="M12 2.5l2.95 6 6.6.96-4.78 4.66 1.13 6.58L12 17.6l-5.9 3.1 1.13-6.58L2.45 9.46l6.6-.96L12 2.5z" /></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#f5b400" aria-hidden="true"><path d="M12 2.5l2.95 6 6.6.96-4.78 4.66 1.13 6.58L12 17.6l-5.9 3.1 1.13-6.58L2.45 9.46l6.6-.96L12 2.5z" /></svg>
+          </span>
+          <span class="cta-trust-meta">
+            <strong>4.9</strong> · 200+ Google reviews
+          </span>
+        </div>
+      </div>
     </div>
   </section>
 </Base>

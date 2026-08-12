@@ -1,0 +1,262 @@
+---
+/**
+ * TestimonialsCarousel — Google-reviews-style client quotes carousel.
+ *
+ * Each card shows: 5-star rating, body quote, reviewer name, role, town,
+ * relative date, and a Google "G" badge for authenticity.
+ *
+ * Data lives inline below; swap `testimonials` for a Sanity `*[_type ==
+ * "testimonial"]` fetch when ready.
+ *
+ * Behaviour: auto-advances every 5s, pauses on hover/focus, prev/next arrows,
+ * dot indicators, keyboard left/right, swipe on touch.
+ */
+
+const testimonials = [
+  {
+    rating: 5,
+    initials: "PH",
+    avatar: "a",
+    name: "Priya Hargreaves",
+    role: "Seller · Sampletown North",
+    quote:
+      "From valuation to completion in eleven weeks — and at 98% of asking price. Honest appraisal, brilliant photography, kept us informed at every step. Genuinely couldn't recommend them more highly.",
+    date: "2026-07-14",
+    dateLabel: "2 weeks ago",
+  },
+  {
+    rating: 5,
+    initials: "MO",
+    avatar: "b",
+    name: "Marcus Okafor",
+    role: "Buyer · Sampletown South",
+    quote:
+      "I'd been searching for six months with another agent and got nowhere. Within three weeks of switching I had an offer accepted. They actually listen to what you want — refreshing change.",
+    date: "2026-06-29",
+    dateLabel: "a month ago",
+  },
+  {
+    rating: 5,
+    initials: "ET",
+    avatar: "c",
+    name: "Emma Thompson",
+    role: "Landlord · Sampletown East",
+    quote:
+      "Let my flat through them last year and the tenant they found is fantastic — still in place, rent always on time. Re-listing again next month without a second thought.",
+    date: "2026-06-12",
+    dateLabel: "2 months ago",
+  },
+  {
+    rating: 5,
+    initials: "DK",
+    avatar: "d",
+    name: "Daniel Kavanagh",
+    role: "First-time buyer · Sampletown West",
+    quote:
+      "Patient, knowledgeable and never pushy. Walked me through every step of the process as a first-time buyer and didn't make me feel stupid for asking the same question twice. Five stars.",
+    date: "2026-05-20",
+    dateLabel: "3 months ago",
+  },
+  {
+    rating: 5,
+    initials: "SR",
+    avatar: "e",
+    name: "Sophie Renshaw",
+    role: "Seller · Sampletown North",
+    quote:
+      "The local knowledge made a real difference — they priced it right first time, knew the buyers likely to be interested, and we had three offers within the first weekend.",
+    date: "2026-04-02",
+    dateLabel: "4 months ago",
+  },
+];
+---
+
+<script is:inline>
+  // Inline so the carousel works without bundling; ~1KB
+  (() => {
+    const init = () => {
+      document.querySelectorAll("[data-tc-root]").forEach((root) => {
+        if (root.dataset.tcInit === "1") return;
+        root.dataset.tcInit = "1";
+
+        const track = root.querySelector("[data-tc-track]");
+        const slides = Array.from(root.querySelectorAll("[data-tc-slide]"));
+        const dots = Array.from(root.querySelectorAll("[data-tc-dot]"));
+        const prev = root.querySelector("[data-tc-prev]");
+        const next = root.querySelector("[data-tc-next]");
+        if (!track || !slides.length) return;
+
+        let index = 0;
+        let timer = null;
+        const AUTO_MS = 5000;
+
+        const visibleCount = () => {
+          // Match the CSS breakpoints for slide visibility
+          if (window.matchMedia("(min-width: 900px)").matches) return 3;
+          if (window.matchMedia("(min-width: 640px)").matches) return 2;
+          return 1;
+        };
+
+        const lastIndex = () => Math.max(0, slides.length - visibleCount());
+
+        const render = () => {
+          const slide = root.querySelector("[data-tc-slide]");
+          if (!slide) return;
+          // Read the actual rendered card width + gap so RTL/LTR changes
+          // and gap edits don't desync the track offset.
+          const styles = window.getComputedStyle(track);
+          const gap = parseFloat(styles.gap || styles.columnGap || "0") || 0;
+          const cardWidth = slide.getBoundingClientRect().width;
+          const offset = index * (cardWidth + gap);
+          track.style.transform = `translateX(-${offset}px)`;
+          dots.forEach((d, i) => {
+            const active = i === index;
+            d.classList.toggle("is-active", active);
+            d.setAttribute("aria-current", active ? "true" : "false");
+          });
+          prev?.toggleAttribute("disabled", index === 0);
+          next?.toggleAttribute("disabled", index >= lastIndex());
+        };
+
+        const go = (i) => {
+          index = Math.max(0, Math.min(i, lastIndex()));
+          render();
+        };
+
+        const start = () => {
+          stop();
+          timer = window.setInterval(() => {
+            index = index >= lastIndex() ? 0 : index + 1;
+            render();
+          }, AUTO_MS);
+        };
+        const stop = () => {
+          if (timer) { window.clearInterval(timer); timer = null; }
+        };
+
+        prev?.addEventListener("click", () => { go(index - 1); start(); });
+        next?.addEventListener("click", () => { go(index + 1); start(); });
+        dots.forEach((d, i) =>
+          d.addEventListener("click", () => { go(i); start(); })
+        );
+
+        root.addEventListener("mouseenter", stop);
+        root.addEventListener("mouseleave", start);
+        root.addEventListener("focusin", stop);
+        root.addEventListener("focusout", start);
+
+        root.addEventListener("keydown", (e) => {
+          if (e.key === "ArrowLeft") { go(index - 1); start(); }
+          if (e.key === "ArrowRight") { go(index + 1); start(); }
+        });
+
+        // Basic swipe support
+        let startX = 0;
+        track.addEventListener("touchstart", (e) => { startX = e.touches[0].clientX; }, { passive: true });
+        track.addEventListener("touchend", (e) => {
+          const dx = e.changedTouches[0].clientX - startX;
+          if (Math.abs(dx) > 40) {
+            if (dx < 0) go(index + 1); else go(index - 1);
+            start();
+          }
+        });
+
+        window.addEventListener("resize", () => {
+          // Keep index in bounds if the viewport changed visibleCount
+          if (index > lastIndex()) index = lastIndex();
+          render();
+        });
+
+        render();
+        start();
+      });
+    };
+
+    if (document.readyState !== "loading") init();
+    else document.addEventListener("DOMContentLoaded", init);
+  })();
+</script>
+
+<section class="section section-alt testimonials-section" aria-label="Customer testimonials">
+  <div class="container">
+    <div class="section-heading">
+      <h2>What Our Clients Say</h2>
+      <p>Real feedback from people we've helped move home across Sampletown</p>
+    </div>
+
+    <div class="testimonials-rail" data-tc-root tabindex="0" aria-roledescription="carousel" aria-label="Client testimonials">
+      <button type="button" class="tc-arrow tc-arrow-prev" data-tc-prev aria-label="Previous testimonial">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M15 18l-6-6 6-6" />
+        </svg>
+      </button>
+
+      <div class="tc-viewport">
+        <div class="tc-track" data-tc-track>
+          {testimonials.map((t) => (
+            <article class="tc-card" data-tc-slide>
+              <div class="tc-stars" aria-label={`Rated ${t.rating} out of 5`}>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill={i < t.rating ? "#f5b400" : "transparent"}
+                    stroke={i < t.rating ? "#f5b400" : "rgba(0,0,0,0.15)"}
+                    stroke-width="1.5"
+                    aria-hidden="true"
+                  >
+                    <path d="M12 2.5l2.95 6 6.6.96-4.78 4.66 1.13 6.58L12 17.6l-5.9 3.1 1.13-6.58L2.45 9.46l6.6-.96L12 2.5z" />
+                  </svg>
+                ))}
+              </div>
+
+              <blockquote class="tc-quote">
+                <p>{t.quote}</p>
+              </blockquote>
+
+              <footer class="tc-reviewer">
+                <div class={`tc-avatar tc-avatar-${t.avatar}`} aria-hidden="true">
+                  {t.initials}
+                </div>
+                <div class="tc-meta">
+                  <strong class="tc-name">{t.name}</strong>
+                  <span class="tc-role">{t.role}</span>
+                </div>
+                <span class="tc-google" aria-label="Posted on Google" title="Posted on Google">
+                  <svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true">
+                    <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.6 6.1 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.4-.4-3.5z" />
+                    <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 13 24 13c3 0 5.8 1.1 7.9 3l5.7-5.7C34.6 6.1 29.5 4 24 4c-7.6 0-14.3 4.3-17.7 10.7z" />
+                    <path fill="#4CAF50" d="M24 44c5.4 0 10.3-2.1 14-5.4l-6.5-5.5C29.5 35 26.9 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.6 39.6 16.3 44 24 44z" />
+                    <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.2 5.5l6.5 5.5C40.9 36 44 30.5 44 24c0-1.2-.1-2.4-.4-3.5z" />
+                  </svg>
+                </span>
+              </footer>
+
+              <time class="tc-date" datetime={t.date}>{t.dateLabel}</time>
+            </article>
+          ))}
+        </div>
+      </div>
+
+      <button type="button" class="tc-arrow tc-arrow-next" data-tc-next aria-label="Next testimonial">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M9 18l6-6-6-6" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="tc-dots" role="tablist" aria-label="Choose testimonial">
+      {testimonials.map((_, i) => (
+        <button
+          type="button"
+          class="tc-dot"
+          data-tc-dot
+          role="tab"
+          aria-selected="false"
+          aria-label={`Show testimonial ${i + 1}`}
+        />
+      ))}
+    </div>
+  </div>
+</section>

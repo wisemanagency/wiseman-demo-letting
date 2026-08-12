@@ -67,7 +67,7 @@ const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
             </a>
           )}
           {settings?.email && (
-            <a href={`mailto:${settings.email}`}>
+            <a href={`mailto:${settings.email}`} class="topbar-email">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
               {settings.email}
             </a>
@@ -78,13 +78,13 @@ const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
 
     <!-- Header -->
     <header class="site-header">
-      <div class="container flex items-center justify-between">
-        <a href="/" class="wordmark flex items-center gap-2">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3v-6h6v6h3a1 1 0 001-1V10" /></svg>
-          {siteName}
+      <div class="container site-header-inner">
+        <a href="/" class="wordmark">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3v-6h6v6h3a1 1 0 001-1V10" /></svg>
+          <span>{siteName}</span>
         </a>
 
-        <nav class="site-nav hidden md:flex">
+        <nav class="site-nav hidden lg:flex" aria-label="Primary">
           <a href="/about" class="nav-link">About</a>
           <a href="/properties" class="nav-link">Properties</a>
           <a href="/map" class="nav-link">Map Search</a>
@@ -95,18 +95,24 @@ const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
         </nav>
 
         <button
-          class="md:hidden p-2 text-white"
+          type="button"
+          class="site-hamburger lg:hidden"
           aria-label="Open menu"
-          onclick="document.getElementById('mobile-menu')?.classList.toggle('hidden')"
+          aria-expanded="false"
+          aria-controls="mobile-menu"
+          data-nav-toggle
         >
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg data-nav-icon-open fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+          <svg data-nav-icon-close class="hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 6l12 12M18 6L6 18" />
           </svg>
         </button>
       </div>
 
-      <div id="mobile-menu" class="hidden md:hidden site-mobile-menu">
-        <nav>
+      <div id="mobile-menu" class="hidden lg:hidden site-mobile-menu" data-nav-menu>
+        <nav aria-label="Mobile">
           <a href="/">Home</a>
           <a href="/about">About</a>
           <a href="/properties">Properties</a>
@@ -114,7 +120,7 @@ const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
           <a href="/areas">Areas</a>
           <a href="/team">Our Team</a>
           <a href="/contact">Contact</a>
-          <a href="/valuation" class="btn btn-primary" style="margin: 12px 20px;">Book Valuation</a>
+          <a href="/valuation" class="btn btn-primary">Book Valuation</a>
         </nav>
       </div>
     </header>
@@ -226,6 +232,45 @@ const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
         window.addEventListener("scroll", onScroll, { passive: true });
         onScroll();
       }
+
+      // Mobile nav toggle (hamburger <-> X, body scroll lock, swap icons)
+      (() => {
+        const toggle = document.querySelector("[data-nav-toggle]");
+        const menu = document.querySelector("[data-nav-menu]");
+        if (!toggle || !menu) return;
+        const iconOpen = toggle.querySelector("[data-nav-icon-open]");
+        const iconClose = toggle.querySelector("[data-nav-icon-close]");
+
+        const setOpen = (open) => {
+          menu.classList.toggle("hidden", !open);
+          toggle.setAttribute("aria-expanded", open ? "true" : "false");
+          toggle.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+          iconOpen?.classList.toggle("hidden", open);
+          iconClose?.classList.toggle("hidden", !open);
+          document.body.classList.toggle("nav-open", open);
+        };
+
+        toggle.addEventListener("click", () => {
+          const isOpen = toggle.getAttribute("aria-expanded") === "true";
+          setOpen(!isOpen);
+        });
+
+        // Close on link tap (so it feels native on mobile)
+        menu.querySelectorAll("a").forEach((a) =>
+          a.addEventListener("click", () => setOpen(false))
+        );
+
+        // Close when the viewport grows past the lg breakpoint
+        const mq = window.matchMedia("(min-width: 1024px)");
+        mq.addEventListener("change", (e) => {
+          if (e.matches) setOpen(false);
+        });
+
+        // Close on Escape
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") setOpen(false);
+        });
+      })();
     </script>
   </body>
 </html>
