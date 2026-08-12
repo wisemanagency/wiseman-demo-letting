@@ -1,0 +1,32 @@
+---
+/**
+ * PageHero — Standard 300px banner with navy overlay over image.
+ *
+ * Used across all subpages for consistent page-level branding. The image is
+ * covered by a 45% navy overlay so the white title sits on top with strong
+ * contrast. Pass `imageUrl` to override the default office photo (e.g. for
+ * area detail pages that have their own Sanity hero image).
+ *
+ *   <PageHero title="Areas We Cover" />
+ *   <PageHero title="Sampletown North" imageUrl={area.heroImage.asset.url} />
+ */
+
+interface Props {
+  title: string;
+  imageUrl?: string;
+  ariaLabel?: string;
+}
+
+const { title, imageUrl = "/estate-office-outdoor.webp", ariaLabel } = Astro.props;
+---
+
+<div class="page-hero" aria-label={ariaLabel ?? title}>
+  <img
+    src={imageUrl}
+    alt=""
+    class="bg-image"
+    loading="eager"
+    decoding="async"
+  />
+  <h1>{title}</h1>
+</div>

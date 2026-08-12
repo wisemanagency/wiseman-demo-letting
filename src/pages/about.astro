@@ -2,6 +2,7 @@
 import Base from "@/layouts/Base.astro";
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import TestimonialsCarousel from "@/components/TestimonialsCarousel.astro";
+import PageHero from "@/components/PageHero.astro";
 import { sanityClient } from "@/lib/sanity";
 import { siteSettingsQuery, allAgentsQuery } from "@/lib/queries";
 
@@ -46,16 +47,7 @@ const stats = [
   jsonLd={jsonLd}
 >
   <!-- Page hero banner -->
-  <div class="page-hero" aria-label="About us">
-    <img
-      src="/estate-office-outdoor.webp"
-      alt=""
-      class="bg-image"
-      loading="eager"
-      decoding="async"
-    />
-    <h1>About Us</h1>
-  </div>
+  <PageHero title="About Us" ariaLabel="About us" />
 
   <!-- Breadcrumbs -->
   <div class="container" style="padding-top: 32px;">

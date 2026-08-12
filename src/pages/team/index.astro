@@ -2,6 +2,7 @@
 import Base from "@/layouts/Base.astro";
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import AgentCard from "@/components/AgentCard.astro";
+import PageHero from "@/components/PageHero.astro";
 import { sanityClient } from "@/lib/sanity";
 import { allAgentsQuery, siteSettingsQuery } from "@/lib/queries";
 
@@ -14,7 +15,9 @@ const siteName = settings?.siteName || "Our Agency";
   title={`Our Team | ${siteName}`}
   description={`Meet the team at ${siteName}. Experienced estate agents ready to help you buy, sell, or rent your next home.`}
 >
-  <div class="container py-8 md:py-12">
+  <PageHero title="Our Team" ariaLabel="Our team" />
+
+  <div class="container" style="padding-top: 32px;">
     <Breadcrumbs
       items={[
         { label: "Home", href: "/" },
@@ -22,15 +25,14 @@ const siteName = settings?.siteName || "Our Agency";
       ]}
     />
 
-    <div class="max-w-2xl mb-10">
-      <h1 class="text-section-heading" style="text-align: left; font-size: 32px; margin-bottom: 16px;">Meet Our Team</h1>
+    <div class="max-w-2xl" style="margin-bottom: 40px;">
       <p style="color: var(--color-text-secondary); font-size: 17px;">
         Our experienced agents know the local market inside out. Whether you're buying, selling, or letting, we're here to guide you every step of the way.
       </p>
     </div>
 
     {agents?.length > 0 ? (
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" style="margin-bottom: 64px;">
         {agents.map((agent: any) => (
           <AgentCard agent={agent} variant="full" />
         ))}

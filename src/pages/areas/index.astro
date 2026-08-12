@@ -1,6 +1,7 @@
 ---
 import Base from "@/layouts/Base.astro";
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import PageHero from "@/components/PageHero.astro";
 import { sanityClient } from "@/lib/sanity";
 import { allAreasQuery } from "@/lib/queries";
 
@@ -8,7 +9,9 @@ const areas = await sanityClient.fetch(allAreasQuery);
 ---
 
 <Base title="Areas We Cover" description="Explore the areas where we help people buy, sell, and rent homes.">
-  <div class="container py-8 md:py-12">
+  <PageHero title="Areas We Cover" ariaLabel="Areas we cover" />
+
+  <div class="container" style="padding-top: 32px;">
     <Breadcrumbs
       items={[
         { label: "Home", href: "/" },
@@ -16,12 +19,9 @@ const areas = await sanityClient.fetch(allAreasQuery);
       ]}
     />
 
-    <div class="section-heading" style="text-align: left; margin-bottom: 40px;">
-      <h2 style="font-size: 32px; margin-bottom: 8px;">Areas We Cover</h2>
-      <p style="color: var(--color-text-secondary); font-size: 15px; text-transform: none; letter-spacing: 0; font-weight: 400; margin-top: 8px;">
-        Browse properties by area. Each neighbourhood page includes local insights, transport links, and all available listings.
-      </p>
-    </div>
+    <p style="color: var(--color-text-secondary); font-size: 15px; margin-bottom: 32px;">
+      Browse properties by area. Each neighbourhood page includes local insights, transport links, and all available listings.
+    </p>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {areas.map((area: any) => (

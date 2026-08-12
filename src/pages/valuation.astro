@@ -2,10 +2,13 @@
 import Base from "@/layouts/Base.astro";
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import ContactForm from "@/components/ContactForm";
+import PageHero from "@/components/PageHero.astro";
 ---
 
 <Base title="Book a Free Valuation" description="Get a free, no-obligation property valuation from our local experts.">
-  <div class="container py-8 md:py-12">
+  <PageHero title="Free Property Valuation" ariaLabel="Free property valuation" />
+
+  <div class="container" style="padding-top: 32px;">
     <Breadcrumbs
       items={[
         { label: "Home", href: "/" },
@@ -13,14 +16,9 @@ import ContactForm from "@/components/ContactForm";
       ]}
     />
 
-    <div class="max-w-3xl mx-auto text-center mb-12">
-      <h1 class="text-page-hero" style="margin-bottom: 16px;">
-        What's Your Property Worth?
-      </h1>
-      <p style="color: var(--color-text-secondary); font-size: 17px;">
-        Book a free, no-obligation valuation. Our local experts will visit your property and give you an honest, market-led appraisal.
-      </p>
-    </div>
+    <p class="max-w-3xl mx-auto text-center" style="color: var(--color-text-secondary); font-size: 17px; margin-bottom: 32px;">
+      Book a free, no-obligation valuation. Our local experts will visit your property and give you an honest, market-led appraisal.
+    </p>
 
     <div class="grid md:grid-cols-2 gap-12 max-w-5xl mx-auto">
       <!-- Benefits -->

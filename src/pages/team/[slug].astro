@@ -3,6 +3,7 @@ import Base from "@/layouts/Base.astro";
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import PropertyGrid from "@/components/PropertyGrid.astro";
 import ContactForm from "@/components/ContactForm";
+import PageHero from "@/components/PageHero.astro";
 import { sanityClient, urlFor } from "@/lib/sanity";
 import { allAgentsQuery, agentBySlugQuery, propertiesByAgentQuery } from "@/lib/queries";
 import { PortableText } from "@portabletext/react";
@@ -63,7 +64,9 @@ const jsonLd = {
   ogImage={photoUrl || undefined}
   jsonLd={jsonLd}
 >
-  <div class="container py-8 md:py-12">
+  <PageHero title={agent.name} ariaLabel={`${agent.name}, ${agent.role}`} />
+
+  <div class="container" style="padding-top: 32px;">
     <Breadcrumbs
       items={[
         { label: "Home", href: "/" },
@@ -72,7 +75,7 @@ const jsonLd = {
       ]}
     />
 
-    <div class="grid lg:grid-cols-3 gap-8 lg:gap-12">
+    <div class="grid lg:grid-cols-3 gap-8 lg:gap-12" style="margin-top: 24px;">
       <!-- Main content -->
       <div class="lg:col-span-2">
         <div class="flex flex-col md:flex-row gap-6 md:gap-8 mb-10">

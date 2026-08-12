@@ -2,6 +2,7 @@
 import Base from "@/layouts/Base.astro";
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import ContactForm from "@/components/ContactForm";
+import PageHero from "@/components/PageHero.astro";
 import { sanityClient } from "@/lib/sanity";
 import { siteSettingsQuery } from "@/lib/queries";
 
@@ -9,7 +10,9 @@ const settings = await sanityClient.fetch(siteSettingsQuery);
 ---
 
 <Base title="Contact Us" description="Get in touch with our team. We're here to help with your property search.">
-  <div class="container py-8 md:py-12">
+  <PageHero title="Contact Us" ariaLabel="Contact us" />
+
+  <div class="container" style="padding-top: 32px;">
     <Breadcrumbs
       items={[
         { label: "Home", href: "/" },
@@ -19,7 +22,6 @@ const settings = await sanityClient.fetch(siteSettingsQuery);
 
     <div class="grid lg:grid-cols-2 gap-12 lg:gap-16">
       <div>
-        <h1 class="text-section-heading" style="text-align: left; font-size: 32px; margin-bottom: 16px;">Get in Touch</h1>
         <p style="color: var(--color-text-secondary); margin-bottom: 32px; font-size: 15px;">
           Whether you're looking to buy, sell, rent, or let — our team is ready to help.
         </p>

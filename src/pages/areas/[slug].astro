@@ -2,6 +2,7 @@
 import Base from "@/layouts/Base.astro";
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import PropertyGrid from "@/components/PropertyGrid.astro";
+import PageHero from "@/components/PageHero.astro";
 import { sanityClient } from "@/lib/sanity";
 import { allAreasQuery, areaBySlugQuery, propertiesByAreaQuery } from "@/lib/queries";
 import { PortableText } from "@portabletext/react";
@@ -30,18 +31,14 @@ const heroUrl = area.heroImage?.asset?.url
   description={area.metaDescription || `Browse homes for sale and to rent in ${area.name}. Local expertise and expert guidance.`}
   ogImage={heroUrl || undefined}
 >
-  <!-- Hero -->
-  {heroUrl && (
-    <div class="relative h-64 md:h-80 overflow-hidden">
-      <img src={heroUrl} alt={area.name} class="w-full h-full object-cover" />
-      <div class="absolute inset-0" style="background: rgba(11, 59, 112, 0.4);"></div>
-      <div class="absolute bottom-0 left-0 container pb-8">
-        <h1 class="text-page-hero" style="color: #fff;">{area.name}</h1>
-      </div>
-    </div>
-  )}
+  <!-- Hero — uses the area's own image if Sanity has one, else the default office photo -->
+  <PageHero
+    title={area.name}
+    imageUrl={heroUrl || undefined}
+    ariaLabel={`Properties in ${area.name}`}
+  />
 
-  <div class="container py-8 md:py-12">
+  <div class="container" style="padding-top: 32px;">
     <Breadcrumbs
       items={[
         { label: "Home", href: "/" },
@@ -49,10 +46,6 @@ const heroUrl = area.heroImage?.asset?.url
         { label: area.name },
       ]}
     />
-
-    {!heroUrl && (
-      <h1 class="text-section-heading" style="text-align: left; font-size: 32px; margin-bottom: 24px;">Properties in {area.name}</h1>
-    )}
 
     <!-- Area description (local SEO content) -->
     {area.description && (
