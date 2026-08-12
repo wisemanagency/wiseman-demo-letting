@@ -260,3 +260,49 @@ export const propertiesByAgentQuery = `
     }
   }
 `;
+
+// ── Blog Post Queries ──
+
+export const allPostsQuery = `
+  *[_type == "post" && defined(publishedAt) && publishedAt <= now()] | order(publishedAt desc) {
+    _id,
+    title,
+    "slug": slug.current,
+    excerpt,
+    publishedAt,
+    readTime,
+    "coverImage": coverImage{
+      asset->{url, metadata{dimensions, lqip}},
+      alt
+    },
+    author->{name, "slug": slug.current, photo}
+  }
+`;
+
+export const postBySlugQuery = `
+  *[_type == "post" && slug.current == $slug && defined(publishedAt) && publishedAt <= now()][0] {
+    _id,
+    title,
+    "slug": slug.current,
+    excerpt,
+    publishedAt,
+    readTime,
+    body,
+    "coverImage": coverImage{
+      asset->{url, metadata{dimensions, lqip}},
+      alt
+    },
+    "ogImage": coalesce(
+      ogImage{asset->{url}},
+      coverImage{asset->{url}}
+    ),
+    metaTitle,
+    metaDescription,
+    author->{
+      name,
+      "slug": slug.current,
+      role,
+      photo{asset->{url}}
+    }
+  }
+`;

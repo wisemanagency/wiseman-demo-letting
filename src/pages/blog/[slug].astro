@@ -1,0 +1,197 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import PageHero from "@/components/PageHero.astro";
+import { sanityClient, urlFor } from "@/lib/sanity";
+import { postBySlugQuery, allPostsQuery, siteSettingsQuery } from "@/lib/queries";
+import { PortableText } from "@portabletext/react";
+
+export async function getStaticPaths() {
+  const posts = await sanityClient.fetch(allPostsQuery);
+  return posts.map((p: any) => ({ params: { slug: p.slug } }));
+}
+
+const { slug } = Astro.params;
+const [post, settings] = await Promise.all([
+  sanityClient.fetch(postBySlugQuery, { slug }),
+  sanityClient.fetch(siteSettingsQuery),
+]);
+
+if (!post) {
+  return Astro.redirect("/404");
+}
+
+const siteName = settings?.siteName || "Estate Agent Demo";
+
+const coverImageUrl = post.coverImage?.asset?.url
+  ? `${post.coverImage.asset.url}?w=1600&h=900&fit=crop&auto=format`
+  : "/estate-office-outdoor.webp";
+
+const ogImage = post.ogImage?.asset?.url
+  ? `${post.ogImage.asset.url}?w=1200&h=630&fit=crop&auto=format`
+  : coverImageUrl;
+
+const authorPhotoUrl = post.author?.photo?.asset?.url
+  ? urlFor(post.author.photo).width(160).height(160).fit("crop").auto("format").url()
+  : null;
+
+const publishedDate = new Date(post.publishedAt).toLocaleDateString("en-GB", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
+
+// BlogPosting JSON-LD so the post is crawlable and surfaces in Google News /
+// AI search citations.
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  headline: post.title,
+  description: post.metaDescription || post.excerpt,
+  url: Astro.url.href,
+  datePublished: post.publishedAt,
+  ...(coverImageUrl && { image: coverImageUrl }),
+  ...(post.author?.name && {
+    author: {
+      "@type": "Person",
+      name: post.author.name,
+      ...(post.author.slug && {
+        url: new URL(`/team/${post.author.slug}`, Astro.url.origin).href,
+      }),
+    },
+  }),
+  publisher: {
+    "@type": "Organization",
+    name: siteName,
+  },
+};
+---
+
+<Base
+  title={post.metaTitle || post.title}
+  description={post.metaDescription || post.excerpt}
+  ogImage={ogImage}
+  jsonLd={jsonLd}
+>
+  <PageHero title="Blog" imageUrl={coverImageUrl} ariaLabel={post.title} />
+
+  <div class="container" style="padding-top: 32px;">
+    <Breadcrumbs
+      items={[
+        { label: "Home", href: "/" },
+        { label: "Blog", href: "/blog" },
+        { label: post.title },
+      ]}
+    />
+
+    <article class="max-w-3xl mx-auto" style="margin-top: 32px;">
+      <header class="mb-8">
+        <h1
+          class="text-section-heading"
+          style="font-size: 36px; text-align: left; line-height: 1.2;"
+        >
+          {post.title}
+        </h1>
+
+        <div
+          class="flex items-center flex-wrap gap-x-3 gap-y-1 mt-4"
+          style="font-size: 13px; color: var(--color-text-muted);"
+        >
+          <time datetime={post.publishedAt}>{publishedDate}</time>
+          {post.readTime && (
+            <>
+              <span>·</span>
+              <span>{post.readTime} min read</span>
+            </>
+          )}
+          {post.author?.name && (
+            <>
+              <span>·</span>
+              <span>
+                By{" "}
+                {post.author.slug ? (
+                  <a href={`/team/${post.author.slug}`} style="color: inherit; text-decoration: underline; text-decoration-color: var(--color-border-subtle);">
+                    {post.author.name}
+                  </a>
+                ) : (
+                  post.author.name
+                )}
+              </span>
+            </>
+          )}
+        </div>
+      </header>
+
+      <img
+        src={coverImageUrl}
+        alt={post.coverImage?.alt || post.title}
+        class="w-full rounded-md mb-8"
+        style="aspect-ratio: 16 / 9; object-fit: cover;"
+        loading="eager"
+        decoding="async"
+      />
+
+      <div class="prose prose-gray max-w-none text-base leading-relaxed">
+        <PortableText value={post.body} />
+      </div>
+
+      {post.author?.name && (
+        <aside
+          class="card card-body mt-12 flex items-center gap-4"
+          style="align-items: center;"
+        >
+          {authorPhotoUrl ? (
+            <img
+              src={authorPhotoUrl}
+              alt={post.author.name}
+              class="w-16 h-16 rounded-full object-cover"
+              loading="lazy"
+              decoding="async"
+            />
+          ) : (
+            <div
+              class="w-16 h-16 rounded-full flex items-center justify-center"
+              style="background: var(--color-surface-alt);"
+            >
+              <span
+                style="font-weight: 700; color: var(--color-text-muted); font-size: 18px;"
+              >
+                {post.author.name
+                  .split(" ")
+                  .map((n: string) => n[0])
+                  .join("")}
+              </span>
+            </div>
+          )}
+          <div>
+            <p
+              class="text-meta"
+              style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted);"
+            >
+              Written by
+            </p>
+            <p style="font-weight: 600; font-size: 16px;">
+              {post.author.slug ? (
+                <a
+                  href={`/team/${post.author.slug}`}
+                  style="color: inherit;"
+                >
+                  {post.author.name}
+                </a>
+              ) : (
+                post.author.name
+              )}
+            </p>
+            {post.author.role && (
+              <p
+                style="font-size: 13px; color: var(--color-text-muted); margin-top: 2px;"
+              >
+                {post.author.role}
+              </p>
+            )}
+          </div>
+        </aside>
+      )}
+    </article>
+  </div>
+</Base>

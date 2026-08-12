@@ -1,0 +1,58 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import PageHero from "@/components/PageHero.astro";
+import PostCard from "@/components/PostCard.astro";
+import { sanityClient } from "@/lib/sanity";
+import { allPostsQuery } from "@/lib/queries";
+
+const posts = await sanityClient.fetch(allPostsQuery);
+
+// ItemList JSON-LD so the listing is crawlable as a structured blog index.
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  itemListElement: posts.map((p: any, i: number) => ({
+    "@type": "ListItem",
+    position: i + 1,
+    url: new URL(`/blog/${p.slug}`, Astro.url.origin).href,
+    name: p.title,
+  })),
+};
+---
+
+<Base
+  title="Blog"
+  description="Insights, advice and local market news from our team."
+  jsonLd={jsonLd}
+>
+  <PageHero title="Blog" ariaLabel="Blog" />
+
+  <div class="container" style="padding-top: 32px;">
+    <Breadcrumbs
+      items={[
+        { label: "Home", href: "/" },
+        { label: "Blog" },
+      ]}
+    />
+
+    <section class="section" style="padding-top: 24px;">
+      <div class="section-heading" style="text-align: left; margin-bottom: 32px;">
+        <p>Latest articles</p>
+        <h2>Insights, advice &amp; local market news</h2>
+      </div>
+
+      {posts.length === 0 ? (
+        <div class="text-center py-16">
+          <p style="color: var(--color-text-muted); font-size: 17px;">
+            No posts published yet — check back soon.
+          </p>
+        </div>
+      ) : (
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {posts.map((post: any) => <PostCard post={post} />)}
+        </div>
+      )}
+    </section>
+  </div>
+</Base>
