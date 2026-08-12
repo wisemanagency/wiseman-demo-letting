@@ -1,0 +1,292 @@
+---
+import Base from "@/layouts/Base.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import TestimonialsCarousel from "@/components/TestimonialsCarousel.astro";
+import { sanityClient } from "@/lib/sanity";
+import { siteSettingsQuery, allAgentsQuery } from "@/lib/queries";
+
+const settings = await sanityClient.fetch(siteSettingsQuery);
+const agents = await sanityClient.fetch(allAgentsQuery);
+const siteName = settings?.siteName || "Estate Agent Demo";
+
+// JSON-LD: AboutPage + Organisation (so the page is both crawlable and
+// surfaces nicely in Google's knowledge panel for the brand).
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "AboutPage",
+  name: `About ${siteName}`,
+  url: new URL("/about", Astro.url.origin).href,
+  mainEntity: {
+    "@type": "RealEstateAgent",
+    name: siteName,
+    url: Astro.url.origin,
+    telephone: settings?.phone,
+    email: settings?.email,
+    description:
+      "Independent estate agency rooted in Sampletown. Sales, lettings and honest valuations, with a named agent from first viewing through to completion.",
+    foundingDate: "2014",
+    areaServed: ["Sampletown North", "Sampletown South", "Sampletown West", "Sampletown East"],
+    numberOfEmployees: agents?.length ?? 4,
+  },
+};
+
+// Stats are hand-curated for the demo — kept as constants so they're easy
+// to swap for Sanity-driven content later.
+const stats = [
+  { value: "11", suffix: "+", label: "Years in Sampletown" },
+  { value: "1,200", suffix: "+", label: "Homes sold & let" },
+  { value: "4.9", suffix: "/5", label: "Google rating" },
+  { value: "9", suffix: " wks", label: "Average sale time" },
+];
+---
+
+<Base
+  title={`About Us | ${siteName}`}
+  description={`Meet ${siteName} — an independent estate agency in Sampletown. Local expertise, personal service and honest valuations since 2014.`}
+  jsonLd={jsonLd}
+>
+  <!-- Page hero banner -->
+  <div class="page-hero" aria-label="About us">
+    <img
+      src="/estate-office-outdoor.webp"
+      alt=""
+      class="bg-image"
+      loading="eager"
+      decoding="async"
+    />
+    <h1>About Us</h1>
+  </div>
+
+  <!-- Breadcrumbs -->
+  <div class="container" style="padding-top: 32px;">
+    <Breadcrumbs
+      items={[
+        { label: "Home", href: "/" },
+        { label: "About" },
+      ]}
+    />
+  </div>
+
+  <!-- Our story — 2-col image + copy -->
+  <section class="about-story">
+    <div class="container about-story-grid">
+      <div class="about-story-image">
+        <img
+          src="/home-image-1.webp"
+          alt="An Estate Agent Demo agent discussing a valuation with clients at the branch"
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+
+      <div class="about-story-copy">
+        <span class="about-story-eyebrow">Our Story</span>
+        <h2>A local agency built on word of mouth.</h2>
+        <p>
+          Estate Agent Demo was founded in 2014 by a small team who'd grown
+          tired of the call-centre approach to selling homes. We opened a single
+          branch on Sampletown High Street and set out to do the basics better
+          — accurate valuations, careful photography, and one named agent who
+          stays with you from first viewing through to completion.
+        </p>
+        <p>
+          Eleven years on, we still work the same way. We've grown to four
+          agents and a portfolio of over a hundred active listings across
+          Sampletown North, South, West and East, but every instruction is run
+          by the person you met at the valuation. No hand-offs, no scripts — just
+          real conversations with people who know the streets, the schools and
+          which roads catch the afternoon sun.
+        </p>
+        <p>
+          Most of our business still comes from neighbours telling neighbours.
+          That's the metric we care about most.
+        </p>
+
+        <div class="about-story-signature">
+          <div>
+            <div class="about-story-signature-line">Charlotte Bennett</div>
+            <div class="about-story-signature-meta">Founder &amp; Senior Agent</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- By the numbers -->
+  <section class="section section-alt stats-band">
+    <div class="container">
+      <div class="section-heading">
+        <h2>By the Numbers</h2>
+        <p>A track record built one move at a time</p>
+      </div>
+
+      <div class="stats-grid">
+        {stats.map((s) => (
+          <div class="stat-block">
+            <span class="stat-number">
+              {s.value}<span class="stat-suffix">{s.suffix}</span>
+            </span>
+            <span class="stat-label">{s.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Our values — dark navy band, same idiom as the homepage -->
+  <section class="section why-band">
+    <div class="container">
+      <div class="section-heading">
+        <h2 style="color: #fff;">What We Stand For</h2>
+        <p>The three principles every instruction rests on</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+        <div class="feature-block">
+          <span class="feature-num">01.</span>
+          <h3>Local Expertise</h3>
+          <div class="feature-divider"></div>
+          <p>
+            We work exclusively across Sampletown and the surrounding villages.
+            Every agent on the team lives within fifteen minutes of the branch,
+            which is why our valuations land where they do.
+          </p>
+        </div>
+
+        <div class="feature-block">
+          <span class="feature-num">02.</span>
+          <h3>Personal Service</h3>
+          <div class="feature-divider"></div>
+          <p>
+            A named agent from your first viewing through to completion. No call
+            centres, no hand-offs between departments — just one point of contact
+            who actually knows your case.
+          </p>
+        </div>
+
+        <div class="feature-block">
+          <span class="feature-num">03.</span>
+          <h3>Honest Valuations</h3>
+          <div class="feature-divider"></div>
+          <p>
+            We'll tell you what your home is really worth, not what we wish it
+            was. Accurate appraisals mean faster sales, fewer fall-throughs, and
+            no awkward renegotiations six weeks down the line.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Meet the team — same 4-up grid as the homepage -->
+  {agents?.length > 0 && (
+    <section class="section">
+      <div class="container">
+        <div class="section-heading">
+          <h2>Meet Our Estate Agents</h2>
+          <p>The friendly faces behind every viewing, sale &amp; valuation</p>
+        </div>
+
+        <div class="agents-grid">
+          {agents.slice(0, 4).map((agent: any) => {
+            const photoUrl = agent.photo?.asset?.url
+              ? `${agent.photo.asset.url}?w=300&h=300&fit=crop&auto=format`
+              : null;
+            return (
+              <a href={`/team/${agent.slug}`} class="agent-tile">
+                <div class="agent-tile-photo">
+                  {photoUrl ? (
+                    <img src={photoUrl} alt={agent.name} loading="lazy" />
+                  ) : (
+                    <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--color-surface-alt);">
+                      <span style="font-size:32px;font-weight:700;color:var(--color-text-muted);">
+                        {agent.name.split(" ").map((n: string) => n[0]).join("")}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <h3>{agent.name}</h3>
+                <p class="agent-role">{agent.role}</p>
+                {agent.branch?.name && <p>{agent.branch.name}</p>}
+              </a>
+            );
+          })}
+        </div>
+
+        <div class="text-center" style="margin-top: 32px;">
+          <a href="/team" class="btn btn-primary">See the full team</a>
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- Testimonials carousel — exact reuse from the homepage -->
+  <TestimonialsCarousel />
+
+  <!-- "Free Property Evaluation" CTA strip — exact reuse from the bottom of the homepage -->
+  <section class="section cta-strip cta-strip-rich">
+    <div class="container cta-strip-grid">
+      <div class="cta-strip-image">
+        <img
+          src="/estate-office-outdoor.webp"
+          alt="Estate agent office exterior with sold sign"
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+
+      <div class="cta-strip-copy">
+        <span class="cta-strip-eyebrow">Free property valuation</span>
+        <h2>Thinking of Selling?</h2>
+        <p class="cta-strip-sub">
+          Get a free, no-obligation valuation from our local experts. We'll give you an
+          honest appraisal of your property's worth — usually within 48 hours.
+        </p>
+
+        <ul class="cta-checklist">
+          <li>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 6L9 17l-5-5" />
+            </svg>
+            <span>Free valuation</span>
+          </li>
+          <li>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 6L9 17l-5-5" />
+            </svg>
+            <span>No obligation</span>
+          </li>
+          <li>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 6L9 17l-5-5" />
+            </svg>
+            <span>Local expert</span>
+          </li>
+          <li>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 6L9 17l-5-5" />
+            </svg>
+            <span>Honest appraisal</span>
+          </li>
+        </ul>
+
+        <a href="/valuation" class="btn btn-primary cta-strip-btn">
+          Book a Free Valuation
+        </a>
+
+        <div class="cta-trust">
+          <span class="cta-trust-stars" aria-label="Rated 4.9 out of 5">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#f5b400" aria-hidden="true"><path d="M12 2.5l2.95 6 6.6.96-4.78 4.66 1.13 6.58L12 17.6l-5.9 3.1 1.13-6.58L2.45 9.46l6.6-.96L12 2.5z" /></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#f5b400" aria-hidden="true"><path d="M12 2.5l2.95 6 6.6.96-4.78 4.66 1.13 6.58L12 17.6l-5.9 3.1 1.13-6.58L2.45 9.46l6.6-.96L12 2.5z" /></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#f5b400" aria-hidden="true"><path d="M12 2.5l2.95 6 6.6.96-4.78 4.66 1.13 6.58L12 17.6l-5.9 3.1 1.13-6.58L2.45 9.46l6.6-.96L12 2.5z" /></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#f5b400" aria-hidden="true"><path d="M12 2.5l2.95 6 6.6.96-4.78 4.66 1.13 6.58L12 17.6l-5.9 3.1 1.13-6.58L2.45 9.46l6.6-.96L12 2.5z" /></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#f5b400" aria-hidden="true"><path d="M12 2.5l2.95 6 6.6.96-4.78 4.66 1.13 6.58L12 17.6l-5.9 3.1 1.13-6.58L2.45 9.46l6.6-.96L12 2.5z" /></svg>
+          </span>
+          <span class="cta-trust-meta">
+            <strong>4.9</strong> · 200+ Google reviews
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
