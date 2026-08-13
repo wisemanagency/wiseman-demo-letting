@@ -216,13 +216,21 @@ const jsonLd = {
           </div>
         </div>
 
-        <!-- Floorplans -->
-        {property.floorplans?.length > 0 && (
-          <div class="mb-8">
-            <h2 class="text-section-heading" style="text-align: left; font-size: 22px; margin-bottom: 16px;">Floorplans</h2>
-            <FloorplansViewer client:visible floorplans={property.floorplans} />
-          </div>
-        )}
+        <!-- Floorplans (with placeholder fallback until clients upload their own) -->
+        <div class="mb-8">
+          <h2 class="text-section-heading" style="text-align: left; font-size: 22px; margin-bottom: 16px;">Floorplans</h2>
+          <FloorplansViewer
+            client:visible
+            floorplans={property.floorplans?.length
+              ? property.floorplans
+              : [{ label: "Sample floor plan", image: { asset: { url: "/floorplan-placeholder.svg" } } }]}
+          />
+          {!property.floorplans?.length && (
+            <p class="text-meta" style="margin-top: 8px; font-size: 12px; color: var(--color-text-muted);">
+              Sample floor plan — clients can upload their own from the Floorplans field in Sanity Studio.
+            </p>
+          )}
+        </div>
 
         <!-- Virtual Tour -->
         {property.virtualTourUrl && (
