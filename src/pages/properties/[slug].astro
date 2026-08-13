@@ -232,10 +232,10 @@ const jsonLd = {
           )}
         </div>
 
-        <!-- Virtual Tour -->
-        {property.virtualTourUrl && (
-          <div class="mb-8">
-            <h2 class="text-section-heading" style="text-align: left; font-size: 22px; margin-bottom: 16px;">Virtual Tour</h2>
+        <!-- Virtual Tour (with placeholder until a URL is set) -->
+        <div class="mb-8">
+          <h2 class="text-section-heading" style="text-align: left; font-size: 22px; margin-bottom: 16px;">Virtual Tour</h2>
+          {property.virtualTourUrl ? (
             <div class="aspect-video rounded-md overflow-hidden" style="border: 1px solid var(--color-border-subtle);">
               <iframe
                 src={property.virtualTourUrl}
@@ -244,8 +244,23 @@ const jsonLd = {
                 loading="lazy"
               />
             </div>
-          </div>
-        )}
+          ) : (
+            <div
+              class="aspect-video rounded-md flex flex-col items-center justify-center gap-3"
+              style="border: 1px dashed var(--color-border-subtle); background: var(--color-surface-alt); color: var(--color-text-muted);"
+            >
+              <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              <p style="font-size: 14px; font-weight: 500;">Virtual tour coming soon</p>
+            </div>
+          )}
+          {!property.virtualTourUrl && (
+            <p class="text-meta" style="margin-top: 8px; font-size: 12px; color: var(--color-text-muted);">
+              Clients can paste a Matterport, iGuide or YouTube link into the Virtual Tour URL field in Sanity Studio.
+            </p>
+          )}
+        </div>
 
         <!-- Video Tour -->
         {property.videos?.length > 0 && (
