@@ -27,7 +27,7 @@ export default function ContactForm({ propertyTitle, branchEmail, formEndpoint }
         // Fallback: mailto link
         const subject = propertyTitle ? `Enquiry about ${propertyTitle}` : "Website Enquiry";
         const body = `Name: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}\n\n${formData.message}`;
-        const mailto = branchEmail || "info@example.com";
+        const mailto = branchEmail || "central@example.com";
         window.location.href = `mailto:${mailto}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
         setStatus("sent");
         return;
