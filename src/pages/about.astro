@@ -3,7 +3,7 @@ import Base from "@/layouts/Base.astro";
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import TestimonialsCarousel from "@/components/TestimonialsCarousel.astro";
 import PageHero from "@/components/PageHero.astro";
-import { sanityClient } from "@/lib/sanity";
+import { sanityClient, urlFor } from "@/lib/sanity";
 import { siteSettingsQuery, allAgentsQuery } from "@/lib/queries";
 
 const settings = await sanityClient.fetch(siteSettingsQuery);
@@ -181,8 +181,13 @@ const stats = [
 
         <div class="agents-grid">
           {agents.slice(0, 4).map((agent: any) => {
-            const photoUrl = agent.photo?.asset?.url
-              ? `${agent.photo.asset.url}?w=300&h=300&fit=crop&auto=format`
+            // Use `urlFor` (which works from the raw photo asset ref) so this
+            // matches the team listing page and team detail page. Previously
+            // this branch tried `agent.photo?.asset?.url`, but `allAgentsQuery`
+            // doesn't deref the asset, so it was always null and we showed
+            // initials for every agent here.
+            const photoUrl = agent.photo
+              ? urlFor(agent.photo).width(300).height(300).fit('crop').auto('format').url()
               : null;
             return (
               <a href={`/team/${agent.slug}`} class="agent-tile">

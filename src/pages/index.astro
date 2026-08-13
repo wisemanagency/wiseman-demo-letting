@@ -4,7 +4,7 @@ import Hero from "@/components/Hero.astro";
 import ListingsCTA from "@/components/ListingsCTA.astro";
 import BookEvalBar from "@/components/BookEvalBar.astro";
 import TestimonialsCarousel from "@/components/TestimonialsCarousel.astro";
-import { sanityClient } from "@/lib/sanity";
+import { sanityClient, urlFor } from "@/lib/sanity";
 import {
   featuredPropertiesQuery,
   siteSettingsQuery,
@@ -204,8 +204,12 @@ const exploreProperties = (allProperties ?? []).slice(0, 8);
 
         <div class="agents-grid">
           {agents.slice(0, 4).map((agent: any) => {
-            const photoUrl = agent.photo?.asset?.url
-              ? `${agent.photo.asset.url}?w=300&h=300&fit=crop&auto=format`
+            // Use `urlFor` (which works from the raw photo asset ref) so this
+            // matches the team listing and team detail pages. Previously this
+            // branch tried `agent.photo?.asset?.url`, but `allAgentsQuery`
+            // doesn't deref the asset, so it was always null.
+            const photoUrl = agent.photo
+              ? urlFor(agent.photo).width(300).height(300).fit('crop').auto('format').url()
               : null;
             return (
               <a href={`/team/${agent.slug}`} class="agent-tile">
