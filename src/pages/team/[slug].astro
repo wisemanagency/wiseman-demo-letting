@@ -6,6 +6,7 @@ import ContactForm from "@/components/ContactForm";
 import PageHero from "@/components/PageHero.astro";
 import { sanityClient, urlFor } from "@/lib/sanity";
 import { allAgentsQuery, agentBySlugQuery, propertiesByAgentQuery } from "@/lib/queries";
+import { toWhatsAppLink } from "@/lib/utils";
 import { PortableText } from "@portabletext/react";
 
 export async function getStaticPaths() {
@@ -24,7 +25,7 @@ const properties = await sanityClient.fetch(propertiesByAgentQuery, { agentId: a
 
 const photoUrl = agent.photo ? urlFor(agent.photo).width(500).height(500).fit('crop').auto('format').url() : null;
 
-const whatsappUrl = agent.whatsapp ? `https://wa.me/${agent.whatsapp}` : null;
+const whatsappUrl = toWhatsAppLink(agent.whatsapp, `Hi ${agent.name.split(" ")[0]}, I'd like to get in touch.`);
 
 // Social icons
 const socialIcons: Record<string, string> = {

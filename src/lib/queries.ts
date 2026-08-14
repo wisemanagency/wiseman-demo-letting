@@ -213,7 +213,6 @@ export const allAgentsQuery = `
     photo,
     phone,
     email,
-    whatsapp,
     specialisms,
     socialLinks[]{platform, url},
     branch->{name, "slug": slug.current}

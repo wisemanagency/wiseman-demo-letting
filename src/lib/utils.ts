@@ -94,3 +94,23 @@ export function fullAddress(property: {
     .filter(Boolean)
     .join(", ");
 }
+
+/**
+ * Build a wa.me click-to-chat link from a free-form phone number.
+ * Strips +, spaces, dashes, brackets and any other non-digit characters
+ * so editors can type "+44 7911 123456" in Studio and still get a valid
+ * link. Returns null if no digits are present so callers can use the
+ * result as a truthiness gate.
+ *
+ *   toWhatsAppLink("+44 7911 123456")
+ *     // => "https://wa.me/447911123456"
+ *   toWhatsAppLink("+44 7911 123456", "Hi Alice, I'm interested in 12 Main Road")
+ *     // => "https://wa.me/447911123456?text=Hi%20Alice%2C%20..."
+ */
+export function toWhatsAppLink(rawNumber: string | null | undefined, message?: string): string | null {
+  if (!rawNumber) return null;
+  const digits = rawNumber.replace(/\D/g, "");
+  if (!digits) return null;
+  const base = `https://wa.me/${digits}`;
+  return message ? `${base}?text=${encodeURIComponent(message)}` : base;
+}

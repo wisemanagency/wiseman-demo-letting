@@ -54,7 +54,7 @@ export default defineType({
       name: "whatsapp",
       title: "WhatsApp Number",
       type: "string",
-      description: "International format without + or spaces, e.g. 447700900123",
+      description: "Include country code, e.g. +44 7911 123456. Leave blank to hide the WhatsApp button.",
     }),
     defineField({
       name: "socialLinks",

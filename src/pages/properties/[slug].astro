@@ -304,7 +304,12 @@ const jsonLd = {
           {property.agent && (
             <div>
               <p class="text-meta" style="margin-bottom: 8px; color: var(--color-text-muted);">Your agent</p>
-              <AgentCard agent={property.agent} variant="compact" />
+              <AgentCard
+                agent={property.agent}
+                variant="compact"
+                showWhatsApp={true}
+                propertyTitle={property.title}
+              />
             </div>
           )}
 
