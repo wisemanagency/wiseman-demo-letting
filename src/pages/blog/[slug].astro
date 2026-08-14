@@ -2,6 +2,7 @@
 import Base from "@/layouts/Base.astro";
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import PageHero from "@/components/PageHero.astro";
+import PortableTextImage from "@/components/PortableTextImage";
 import { sanityClient, urlFor } from "@/lib/sanity";
 import { postBySlugQuery, allPostsQuery, siteSettingsQuery } from "@/lib/queries";
 import { PortableText } from "@portabletext/react";
@@ -41,6 +42,22 @@ const publishedDate = new Date(post.publishedAt).toLocaleDateString("en-GB", {
   year: "numeric",
 });
 
+// Sanity's GROQ layer has been returning `marks` and `markDefs` as empty strings
+// rather than empty arrays, which @portabletext/react v3 silently rejects and
+// renders an empty body. Normalise here so the body actually shows up.
+const normalizedBody = Array.isArray(post.body)
+  ? post.body.map((block: any) => ({
+      ...block,
+      markDefs: Array.isArray(block.markDefs) ? block.markDefs : [],
+      children: Array.isArray(block.children)
+        ? block.children.map((child: any) => ({
+            ...child,
+            marks: Array.isArray(child.marks) ? child.marks : [],
+          }))
+        : [],
+    }))
+  : [];
+
 // BlogPosting JSON-LD so the post is crawlable and surfaces in Google News /
 // AI search citations.
 const jsonLd = {
@@ -73,7 +90,7 @@ const jsonLd = {
   ogImage={ogImage}
   jsonLd={jsonLd}
 >
-  <PageHero title="Blog" imageUrl={coverImageUrl} ariaLabel={post.title} />
+  <PageHero title={post.title} imageUrl={coverImageUrl} ariaLabel={post.title} />
 
   <div class="container" style="padding-top: 32px;">
     <Breadcrumbs
@@ -86,15 +103,8 @@ const jsonLd = {
 
     <article class="max-w-3xl mx-auto" style="margin-top: 32px;">
       <header class="mb-8">
-        <h1
-          class="text-section-heading"
-          style="font-size: 36px; text-align: left; line-height: 1.2;"
-        >
-          {post.title}
-        </h1>
-
         <div
-          class="flex items-center flex-wrap gap-x-3 gap-y-1 mt-4"
+          class="flex items-center flex-wrap gap-x-3 gap-y-1"
           style="font-size: 13px; color: var(--color-text-muted);"
         >
           <time datetime={post.publishedAt}>{publishedDate}</time>
@@ -122,17 +132,11 @@ const jsonLd = {
         </div>
       </header>
 
-      <img
-        src={coverImageUrl}
-        alt={post.coverImage?.alt || post.title}
-        class="w-full rounded-md mb-8"
-        style="aspect-ratio: 16 / 9; object-fit: cover;"
-        loading="eager"
-        decoding="async"
-      />
-
-      <div class="prose prose-gray max-w-none text-base leading-relaxed">
-        <PortableText value={post.body} />
+      <div class="prose prose-gray max-w-none text-base leading-relaxed" style="margin-top: 24px;">
+        <PortableText
+          value={normalizedBody}
+          components={{ types: { image: PortableTextImage } }}
+        />
       </div>
 
       {post.author?.name && (
