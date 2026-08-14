@@ -10,7 +10,6 @@ import ContactForm from "@/components/ContactForm";
 import AgentCard from "@/components/AgentCard.astro";
 import SimilarListings from "@/components/SimilarListings";
 import MortgageCalculator from "@/components/MortgageCalculator";
-import PageHero from "@/components/PageHero.astro";
 import { sanityClient } from "@/lib/sanity";
 import { propertyBySlugQuery, allPropertiesQuery } from "@/lib/queries";
 import { formatPrice, statusLabel, statusColour, fullAddress, propertySummary } from "@/lib/utils";
@@ -88,8 +87,6 @@ const jsonLd = {
   ogImage={ogImage}
   jsonLd={jsonLd}
 >
-  <PageHero title={property.title} ariaLabel={`${property.title} in ${property.town}`} />
-
   <div class="container" style="padding-top: 32px;">
     <Breadcrumbs
       items={[

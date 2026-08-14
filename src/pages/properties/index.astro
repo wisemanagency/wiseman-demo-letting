@@ -2,7 +2,6 @@
 import Base from "@/layouts/Base.astro";
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import PropertyFilter from "@/components/PropertyFilter";
-import PageHero from "@/components/PageHero.astro";
 import { sanityClient } from "@/lib/sanity";
 import { allPropertiesQuery, allTownsQuery, allPropertyTypesQuery } from "@/lib/queries";
 
@@ -12,8 +11,6 @@ const propertyTypes = await sanityClient.fetch(allPropertyTypesQuery);
 ---
 
 <Base title="Properties" description="Browse all properties for sale and to rent.">
-  <PageHero title="All Properties" ariaLabel="All properties" />
-
   <div class="container" style="padding-top: 32px;">
     <Breadcrumbs
       items={[
