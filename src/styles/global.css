@@ -371,8 +371,14 @@ main:not(:has(> .section:last-child)) {
   animation: mobile-menu-slide 180ms ease-out;
 }
 @keyframes mobile-menu-slide {
-  from { opacity: 0; transform: translateY(-6px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 .site-mobile-menu nav {
   display: flex;
@@ -650,7 +656,9 @@ body.nav-open {
 .search-bar {
   background: #fff;
   border-radius: 4px;
-  box-shadow: 0 20px 50px rgba(8, 44, 87, 0.35), 0 4px 12px rgba(8, 44, 87, 0.18);
+  box-shadow:
+    0 20px 50px rgba(8, 44, 87, 0.35),
+    0 4px 12px rgba(8, 44, 87, 0.18);
   display: flex;
   flex-wrap: wrap;
   align-items: stretch;
@@ -1274,8 +1282,9 @@ body.nav-open {
 .cta-strip-image {
   border-radius: 18px;
   overflow: hidden;
-  box-shadow: 0 24px 56px -12px rgba(8, 44, 87, 0.22),
-              0 6px 18px -6px rgba(8, 44, 87, 0.12);
+  box-shadow:
+    0 24px 56px -12px rgba(8, 44, 87, 0.22),
+    0 6px 18px -6px rgba(8, 44, 87, 0.12);
   aspect-ratio: 4 / 3;
 }
 .cta-strip-image img {

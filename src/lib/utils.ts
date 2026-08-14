@@ -107,7 +107,10 @@ export function fullAddress(property: {
  *   toWhatsAppLink("+44 7911 123456", "Hi Alice, I'm interested in 12 Main Road")
  *     // => "https://wa.me/447911123456?text=Hi%20Alice%2C%20..."
  */
-export function toWhatsAppLink(rawNumber: string | null | undefined, message?: string): string | null {
+export function toWhatsAppLink(
+  rawNumber: string | null | undefined,
+  message?: string
+): string | null {
   if (!rawNumber) return null;
   const digits = rawNumber.replace(/\D/g, "");
   if (!digits) return null;

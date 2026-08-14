@@ -11,11 +11,6 @@
 // Run with --dry-run to print what would change without writing.
 
 import { createClient } from "@sanity/client";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const projectRoot = path.resolve(__dirname, "..");
 
 // ── Auth token ──
 // Must be supplied via the environment. See .env.example for the variable
@@ -98,9 +93,7 @@ function normalizeField(value) {
         return child;
       });
       // Detect if any child actually changed
-      const childrenChanged = nextChildren.some(
-        (c, i) => c !== block.children[i]
-      );
+      const childrenChanged = nextChildren.some((c, i) => c !== block.children[i]);
       if (childrenChanged) {
         blockChange.children = nextChildren;
         fieldChanged = true;
@@ -133,10 +126,9 @@ for (const doc of docs) {
 
   // For each PortableText field, fetch the raw value and normalize
   for (const fieldName of fields) {
-    const raw = await client.fetch(
-      `*[_id == $id][0]{ "${fieldName}": ${fieldName} }`,
-      { id: doc._id }
-    );
+    const raw = await client.fetch(`*[_id == $id][0]{ "${fieldName}": ${fieldName} }`, {
+      id: doc._id,
+    });
     const value = raw?.[fieldName];
     const { changed, value: fixed } = normalizeField(value);
     if (changed) {
@@ -189,5 +181,7 @@ for (const row of stats.perDocument) {
 }
 
 if (DRY_RUN) {
-  console.log("\n[fix-portabletext-marks] DRY RUN — no writes performed. Re-run without --dry-run to apply.");
+  console.log(
+    "\n[fix-portabletext-marks] DRY RUN — no writes performed. Re-run without --dry-run to apply."
+  );
 }

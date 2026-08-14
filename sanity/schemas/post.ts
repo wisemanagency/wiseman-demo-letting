@@ -33,7 +33,8 @@ export default defineType({
       type: "text",
       group: "content",
       rows: 3,
-      description: "Short summary shown on listing cards and used as the meta description fallback.",
+      description:
+        "Short summary shown on listing cards and used as the meta description fallback.",
       validation: (r) => r.required().max(200),
     }),
     defineField({
@@ -61,9 +62,7 @@ export default defineType({
       description:
         "Required. Used on listing cards (4:3) and social sharing (1.91:1). Use the hotspot tool to mark the focal point.",
       validation: (r) => r.required(),
-      fields: [
-        { name: "alt", type: "string", title: "Alt text", validation: (r) => r.required() },
-      ],
+      fields: [{ name: "alt", type: "string", title: "Alt text", validation: (r) => r.required() }],
     }),
 
     // ── Author & Dates ──
