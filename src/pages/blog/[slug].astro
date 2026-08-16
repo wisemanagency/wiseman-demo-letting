@@ -22,7 +22,7 @@ if (!post) {
   return Astro.redirect("/404");
 }
 
-const siteName = settings?.siteName || "Estate Agent Demo";
+const siteName = settings?.siteName || "Letting Agent Demo";
 
 const coverImageUrl = post.coverImage?.asset?.url
   ? `${post.coverImage.asset.url}?w=1600&h=900&fit=crop&auto=format`

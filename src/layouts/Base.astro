@@ -14,14 +14,14 @@ interface Props {
 
 const settings = await sanityClient.fetch(siteSettingsQuery);
 const {
-  title = settings?.defaultMetaTitle || "Estate Agent Demo",
+  title = settings?.defaultMetaTitle || "Letting Agent Demo",
   description = settings?.defaultMetaDescription,
   ogImage = settings?.ogImage?.asset?.url,
   jsonLd,
   noindex,
 } = Astro.props;
 
-const siteName = settings?.siteName || "Estate Agent Demo";
+const siteName = settings?.siteName || "Letting Agent Demo";
 const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
 ---
 

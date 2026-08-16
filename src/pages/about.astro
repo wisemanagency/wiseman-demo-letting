@@ -8,7 +8,7 @@ import { siteSettingsQuery, allAgentsQuery } from "@/lib/queries";
 
 const settings = await sanityClient.fetch(siteSettingsQuery);
 const agents = await sanityClient.fetch(allAgentsQuery);
-const siteName = settings?.siteName || "Estate Agent Demo";
+const siteName = settings?.siteName || "Letting Agent Demo";
 
 // JSON-LD: AboutPage + Organisation (so the page is both crawlable and
 // surfaces nicely in Google's knowledge panel for the brand).
@@ -24,7 +24,7 @@ const jsonLd = {
     telephone: settings?.phone,
     email: settings?.email,
     description:
-      "Independent estate agency rooted in Sampletown. Sales, lettings and honest valuations, with a named agent from first viewing through to completion.",
+      "Independent letting agency rooted in Sampletown. Lettings, sales and honest valuations, with a named agent from first viewing through to completion.",
     foundingDate: "2014",
     areaServed: ["Sampletown North", "Sampletown South", "Sampletown West", "Sampletown East"],
     numberOfEmployees: agents?.length ?? 4,
@@ -43,7 +43,7 @@ const stats = [
 
 <Base
   title={`About Us | ${siteName}`}
-  description={`Meet ${siteName} — an independent estate agency in Sampletown. Local expertise, personal service and honest valuations since 2014.`}
+  description={`Meet ${siteName} — an independent letting agency in Sampletown. Local expertise, personal service and honest valuations since 2014.`}
   jsonLd={jsonLd}
 >
   <!-- Page hero banner -->
@@ -65,7 +65,7 @@ const stats = [
       <div class="about-story-image">
         <img
           src="/home-image-1.webp"
-          alt="An Estate Agent Demo agent discussing a valuation with clients at the branch"
+          alt="A Letting Agent Demo agent discussing a rental valuation with clients at the branch"
           loading="lazy"
           decoding="async"
         />
@@ -75,11 +75,11 @@ const stats = [
         <span class="about-story-eyebrow">Our Story</span>
         <h2>A local agency built on word of mouth.</h2>
         <p>
-          Estate Agent Demo was founded in 2014 by a small team who'd grown
-          tired of the call-centre approach to selling homes. We opened a single
+          Letting Agent Demo was founded in 2014 by a small team who'd grown
+          tired of the call-centre approach to letting homes. We opened a single
           branch on Sampletown High Street and set out to do the basics better
           — accurate valuations, careful photography, and one named agent who
-          stays with you from first viewing through to completion.
+          stays with you from first viewing through to check-in.
         </p>
         <p>
           Eleven years on, we still work the same way. We've grown to four
@@ -175,8 +175,8 @@ const stats = [
     <section class="section">
       <div class="container">
         <div class="section-heading">
-          <h2>Meet Our Estate Agents</h2>
-          <p>The friendly faces behind every viewing, sale &amp; valuation</p>
+          <h2>Meet Our Letting Agents</h2>
+          <p>The friendly faces behind every viewing, let &amp; valuation</p>
         </div>
 
         <div class="agents-grid">
