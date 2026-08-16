@@ -98,7 +98,7 @@ const jsonLd = {
           <!-- Details -->
           <div class="flex-1">
             <h1 class="text-section-heading" style="text-align: left; font-size: 32px; margin-bottom: 4px;">{agent.name}</h1>
-            <p style="font-size: 16px; font-weight: 500; margin-bottom: 16px; color: var(--color-brand-cyan);">{agent.role}</p>
+            <p style="font-size: 16px; font-weight: 500; margin-bottom: 16px; color: var(--color-brand-orange);">{agent.role}</p>
 
             {agent.branch && (
               <p style="font-size: 13px; color: var(--color-text-muted); margin-bottom: 16px;">{agent.branch.name}</p>
@@ -203,7 +203,7 @@ const jsonLd = {
               <p style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">{agent.branch.name}</p>
               {agent.branch.address && <p style="font-size: 13px; color: var(--color-text-muted); white-space: pre-line;">{agent.branch.address}</p>}
               {agent.branch.phone && (
-                <a href={`tel:${agent.branch.phone}`} class="block text-sm mt-2" style="color: var(--color-brand-cyan); font-weight: 500;">{agent.branch.phone}</a>
+                <a href={`tel:${agent.branch.phone}`} class="block text-sm mt-2" style="color: var(--color-brand-orange); font-weight: 500;">{agent.branch.phone}</a>
               )}
             </div>
           )}
