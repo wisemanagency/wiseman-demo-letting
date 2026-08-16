@@ -37,6 +37,28 @@ export function furnishedLabel(furnished: string | null | undefined): string {
 }
 
 /**
+ * Format letting availability date for UK display.
+ * Sanity dates are YYYY-MM-DD strings (no timezone). Parsed as local midnight
+ * to avoid the UTC-vs-local off-by-one that `new Date("YYYY-MM-DD")` causes
+ * west of UTC. If the parsed date is today or earlier, returns "Available now".
+ */
+export function formatAvailableFrom(dateStr: string | null | undefined): string {
+  if (!dateStr) return "";
+  const parts = dateStr.split("-").map(Number);
+  if (parts.length !== 3 || parts.some((n) => Number.isNaN(n))) return "";
+  const [y, m, d] = parts as [number, number, number];
+  const availableDate = new Date(y, m - 1, d);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (availableDate <= today) return "Available now";
+  return availableDate.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+/**
  * Human-readable status badge text
  */
 export function statusLabel(status: string): string {

@@ -12,7 +12,7 @@ import SimilarListings from "@/components/SimilarListings";
 import MortgageCalculator from "@/components/MortgageCalculator";
 import { sanityClient } from "@/lib/sanity";
 import { propertyBySlugQuery, allPropertiesQuery } from "@/lib/queries";
-import { formatPrice, formatRent, furnishedLabel, statusLabel, statusColour, fullAddress, propertySummary } from "@/lib/utils";
+import { formatPrice, formatRent, formatAvailableFrom, furnishedLabel, statusLabel, statusColour, fullAddress, propertySummary } from "@/lib/utils";
 import { PortableText } from "@portabletext/react";
 
 // Generate static paths at build time
@@ -230,7 +230,7 @@ const jsonLd = {
                 {isLetting && property.availableFrom && (
                   <tr style="border-bottom: 1px solid var(--color-border-subtle);">
                     <td class="py-3 px-4 font-medium" style="color: var(--color-text-secondary);">Available From</td>
-                    <td class="py-3 px-4">{new Date(property.availableFrom).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}</td>
+                    <td class="py-3 px-4">{formatAvailableFrom(property.availableFrom)}</td>
                   </tr>
                 )}
                 {isLetting && property.depositAmount != null && (
