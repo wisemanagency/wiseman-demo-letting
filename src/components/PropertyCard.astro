@@ -1,5 +1,5 @@
 ---
-import { formatPrice, statusLabel } from "@/lib/utils";
+import { formatPrice, formatRent, furnishedLabel, statusLabel } from "@/lib/utils";
 
 interface Props {
   property: {
@@ -9,6 +9,9 @@ interface Props {
     propertyType?: string;
     price: number;
     priceQualifier?: string;
+    rentPerMonth?: number;
+    rentPeriod?: string;
+    furnished?: string;
     bedrooms?: number;
     bathrooms?: number;
     sqft?: number;
@@ -29,6 +32,9 @@ const {
   status,
   price,
   priceQualifier,
+  rentPerMonth,
+  rentPeriod,
+  furnished,
   bedrooms,
   bathrooms,
   sqft,
@@ -43,10 +49,12 @@ const imageUrl = thumbnail?.asset?.url
   : "/floorplan-placeholder.svg";
 const lqip = thumbnail?.asset?.metadata?.lqip;
 
+const isLetting =
+  status === "for-rent" || status === "let-agreed" || status === "let";
 const statusClass =
   status === "for-sale" || status === "sold-stc" || status === "under-offer"
     ? "badge-sale"
-    : status === "for-rent" || status === "let-agreed" || status === "let"
+    : isLetting
       ? "badge-rent"
       : "badge-muted";
 ---
@@ -74,7 +82,9 @@ const statusClass =
 
   <div class="card-body">
     <p class="text-price-lg mb-1.5">
-      {formatPrice(price, priceQualifier)}
+      {isLetting && rentPerMonth != null
+        ? formatRent(rentPerMonth, rentPeriod)
+        : formatPrice(price, priceQualifier)}
     </p>
 
     <h3 class="text-card-title text-text-primary mb-1.5 line-clamp-1">
@@ -88,6 +98,14 @@ const statusClass =
     )}
 
     <div class="flex items-center gap-4 text-meta border-t pt-3" style="font-size: 12px; color: var(--color-text-muted); border-color: var(--color-border-subtle);">
+      {isLetting && furnished && (
+        <span class="flex items-center gap-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 13l4 4L19 7" />
+          </svg>
+          {furnishedLabel(furnished)}
+        </span>
+      )}
       {bedrooms != null && (
         <span class="flex items-center gap-1">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

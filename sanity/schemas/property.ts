@@ -88,6 +88,69 @@ export default defineType({
       },
       initialValue: "Guide Price",
     }),
+
+    // ── Letting-specific fields (wiseman-demo-letting divergence) ──
+    defineField({
+      name: "rentPerMonth",
+      title: "Rent per Month (£)",
+      type: "number",
+      group: "details",
+      description: "Monthly rental price — used for letting listings",
+      validation: (r) => r.min(0),
+    }),
+    defineField({
+      name: "rentPeriod",
+      title: "Rent Period",
+      type: "string",
+      group: "details",
+      options: {
+        list: [
+          { title: "Per Calendar Month (pcm)", value: "pcm" },
+          { title: "Per Week (pw)", value: "pw" },
+        ],
+        layout: "radio",
+      },
+      initialValue: "pcm",
+      description: "How rentPerMonth is quoted — pcm is the UK letting default",
+    }),
+    defineField({
+      name: "furnished",
+      title: "Furnished Status",
+      type: "string",
+      group: "details",
+      options: {
+        list: [
+          { title: "Furnished", value: "furnished" },
+          { title: "Part Furnished", value: "part-furnished" },
+          { title: "Unfurnished", value: "unfurnished" },
+        ],
+        layout: "radio",
+      },
+    }),
+    defineField({
+      name: "minTermMonths",
+      title: "Minimum Term (months)",
+      type: "number",
+      group: "details",
+      description:
+        "Shortest tenancy the landlord will accept, in months (e.g. 6 for a 6-month minimum)",
+      validation: (r) => r.min(0).max(60),
+    }),
+    defineField({
+      name: "availableFrom",
+      title: "Available From",
+      type: "date",
+      group: "details",
+      description: "Date the property becomes available to move into",
+    }),
+    defineField({
+      name: "depositAmount",
+      title: "Deposit (£)",
+      type: "number",
+      group: "details",
+      description: "Tenancy deposit in pounds (UK cap is typically 5 weeks rent)",
+      validation: (r) => r.min(0),
+    }),
     defineField({
       name: "bedrooms",
       title: "Bedrooms",

@@ -14,6 +14,29 @@ export function formatPrice(price: number | null | undefined, qualifier?: string
 }
 
 /**
+ * Format letting rent for UK display
+ * e.g. 1250, "pcm" → "£1,250 pcm"
+ *      300, "pw"   → "£300 pw"
+ */
+export function formatRent(rent: number | null | undefined, period?: string): string {
+  if (rent == null) return "";
+  const label = period === "pw" ? "pw" : "pcm";
+  return `£${rent.toLocaleString("en-GB")} ${label}`;
+}
+
+/**
+ * Human-readable furnished status label
+ */
+export function furnishedLabel(furnished: string | null | undefined): string {
+  const map: Record<string, string> = {
+    furnished: "Furnished",
+    "part-furnished": "Part Furnished",
+    unfurnished: "Unfurnished",
+  };
+  return furnished ? (map[furnished] ?? furnished) : "";
+}
+
+/**
  * Human-readable status badge text
  */
 export function statusLabel(status: string): string {

@@ -38,3 +38,6 @@ images/
 # Local debug HTML snapshots
 *_local.html
 props2.html
+
+.vercel
+.env*

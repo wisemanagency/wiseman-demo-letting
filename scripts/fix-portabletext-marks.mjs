@@ -34,7 +34,7 @@ if (!TOKEN) {
   process.exit(1);
 }
 
-const PROJECT_ID = "roizovwr";
+const PROJECT_ID = "4k3lxsgw";
 const DATASET = "production";
 const DRY_RUN = process.argv.includes("--dry-run");
 

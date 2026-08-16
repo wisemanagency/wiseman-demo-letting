@@ -12,7 +12,7 @@ import SimilarListings from "@/components/SimilarListings";
 import MortgageCalculator from "@/components/MortgageCalculator";
 import { sanityClient } from "@/lib/sanity";
 import { propertyBySlugQuery, allPropertiesQuery } from "@/lib/queries";
-import { formatPrice, statusLabel, statusColour, fullAddress, propertySummary } from "@/lib/utils";
+import { formatPrice, formatRent, furnishedLabel, statusLabel, statusColour, fullAddress, propertySummary } from "@/lib/utils";
 import { PortableText } from "@portabletext/react";
 
 // Generate static paths at build time
@@ -33,6 +33,13 @@ if (!property) {
 
 const address = fullAddress(property);
 const summary = propertySummary(property);
+const isLetting =
+  property.status === "for-rent" ||
+  property.status === "let-agreed" ||
+  property.status === "let";
+const primaryPrice = isLetting
+  ? formatRent(property.rentPerMonth, property.rentPeriod)
+  : formatPrice(property.price, property.priceQualifier);
 const ogImage = property.images?.[0]?.asset?.url
   ? `${property.images[0].asset.url}?w=1200&h=630&fit=crop&auto=format`
   : undefined;
@@ -82,7 +89,7 @@ const jsonLd = {
 ---
 
 <Base
-  title={property.metaTitle || `${property.title} | ${formatPrice(property.price, property.priceQualifier)}`}
+  title={property.metaTitle || `${property.title} | ${primaryPrice}`}
   description={property.metaDescription || `${summary}. ${address}`}
   ogImage={ogImage}
   jsonLd={jsonLd}
@@ -119,7 +126,7 @@ const jsonLd = {
           <p style="color: var(--color-text-muted); margin-bottom: 16px;">{address}</p>
 
           <p class="text-price-lg" style="font-size: 24px;">
-            {formatPrice(property.price, property.priceQualifier)}
+            {primaryPrice}
           </p>
         </div>
 
@@ -206,6 +213,30 @@ const jsonLd = {
                   <tr>
                     <td class="py-3 px-4 font-medium" style="color: var(--color-text-secondary);">EPC Rating</td>
                     <td class="py-3 px-4"><EpcBadge rating={property.epc} size="sm" /></td>
+                  </tr>
+                )}
+                {isLetting && property.furnished && (
+                  <tr style="border-bottom: 1px solid var(--color-border-subtle);">
+                    <td class="py-3 px-4 font-medium" style="color: var(--color-text-secondary);">Furnished</td>
+                    <td class="py-3 px-4">{furnishedLabel(property.furnished)}</td>
+                  </tr>
+                )}
+                {isLetting && property.minTermMonths != null && (
+                  <tr style="border-bottom: 1px solid var(--color-border-subtle);">
+                    <td class="py-3 px-4 font-medium" style="color: var(--color-text-secondary);">Minimum Term</td>
+                    <td class="py-3 px-4">{property.minTermMonths} months</td>
+                  </tr>
+                )}
+                {isLetting && property.availableFrom && (
+                  <tr style="border-bottom: 1px solid var(--color-border-subtle);">
+                    <td class="py-3 px-4 font-medium" style="color: var(--color-text-secondary);">Available From</td>
+                    <td class="py-3 px-4">{new Date(property.availableFrom).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}</td>
+                  </tr>
+                )}
+                {isLetting && property.depositAmount != null && (
+                  <tr style="border-bottom: 1px solid var(--color-border-subtle);">
+                    <td class="py-3 px-4 font-medium" style="color: var(--color-text-secondary);">Deposit</td>
+                    <td class="py-3 px-4">£{property.depositAmount.toLocaleString("en-GB")}</td>
                   </tr>
                 )}
               </tbody>
