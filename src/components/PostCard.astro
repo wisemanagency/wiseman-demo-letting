@@ -24,7 +24,7 @@ const { post } = Astro.props;
 
 const imageUrl = post.coverImage?.asset?.url
   ? `${post.coverImage.asset.url}?w=600&h=450&fit=crop&auto=format`
-  : "/estate-office-outdoor.webp";
+  : "/valuation-cta.svg";
 const lqip = post.coverImage?.asset?.metadata?.lqip;
 
 const formattedDate = new Date(post.publishedAt).toLocaleDateString("en-GB", {
