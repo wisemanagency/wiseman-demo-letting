@@ -361,6 +361,20 @@ main:not(:has(> .section:last-child)) {
   margin-left: 8px;
 }
 
+/* Homepage: nav floats transparently over the top of the hero, just below
+   the topbar. The header is taken out of the document flow so the hero
+   starts right under the topbar; the nav links overlay the photo instead
+   of sitting on a solid navy strip. Not sticky on this view — the nav
+   scrolls away with the hero. */
+body[data-route="/"] .site-header {
+  position: absolute;
+  top: 40px;
+  left: 0;
+  right: 0;
+  background: transparent;
+  z-index: 50;
+}
+
 /* Mobile menu (shown when toggled) */
 .site-mobile-menu {
   background: var(--color-brand-navy-dark);
@@ -788,6 +802,11 @@ body.nav-open {
   position: absolute;
   inset: 0;
   background: linear-gradient(180deg, rgba(11, 59, 112, 0.4) 0%, rgba(8, 44, 87, 0.5) 100%);
+}
+/* Homepage: darken the top of the hero overlay so the transparent nav
+   text stays readable when the photo behind is busy/bright. */
+body[data-route="/"] .hero-bg::after {
+  background: linear-gradient(180deg, rgba(8, 44, 87, 0.6) 0%, rgba(8, 44, 87, 0.5) 100%);
 }
 .hero-inner {
   position: relative;
