@@ -103,13 +103,13 @@ const IMAGE_REFS = {
   // (house1-1 … house8-1). 6 distinct assets, no same-street collision with
   // the existing properties on Willow Drive or Riverside Quay.
   "1-bed-flat-harbour-view-sampletown-north":
-    "image-079c29daa852f30103d8b1f1b35a39a67561d258-1920x1280-webp", // house6-4
+    "image-1501b62fafaa71c7ef8a1e9e7ee47cb17d056ff3-1920x1280-webp", // house8-1
   "3-bed-semi-oak-lane-sampletown-north":
     "image-ccdc76e6303c3ce4216dd8bcab157b9ad289ca4a-1920x1280-webp", // house4-2
   "2-bed-maisonette-riverside-quay-sampletown-west":
     "image-68a676509cf17e1e0c648a455784dabb3876f530-1920x1280-webp", // house2-1
   "4-bed-detached-willow-drive-sampletown-west":
-    "image-e6ac9f05002a1c19e223a294468a15c9c76ad28a-1920x1280-webp", // house1-1
+    "image-5d50966b3011f27f8753f5970deaf56d2ca6f4ed-1920x1280-webp", // house5-2
   "2-bed-cottage-mill-lane-sampletown-east":
     "image-0a44cab6cdbeb13586fb373965797a1a1a43fb9b-1920x1280-webp", // house3-3
   "3-bed-bungalow-heathfield-road-sampletown-east":
