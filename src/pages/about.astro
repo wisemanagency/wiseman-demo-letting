@@ -24,7 +24,7 @@ const jsonLd = {
     telephone: settings?.phone,
     email: settings?.email,
     description:
-      "Independent letting agency rooted in Sampletown. Lettings, sales and honest valuations, with a named agent from first viewing through to completion.",
+      "Independent letting agency rooted in Sampletown. Lettings, tenant-find and honest rental appraisals, with a named agent from first viewing through to check-in.",
     foundingDate: "2014",
     areaServed: ["Sampletown North", "Sampletown South", "Sampletown West", "Sampletown East"],
     numberOfEmployees: agents?.length ?? 4,
@@ -35,15 +35,15 @@ const jsonLd = {
 // to swap for Sanity-driven content later.
 const stats = [
   { value: "11", suffix: "+", label: "Years in Sampletown" },
-  { value: "1,200", suffix: "+", label: "Homes sold & let" },
+  { value: "1,200", suffix: "+", label: "Tenancies managed" },
   { value: "4.9", suffix: "/5", label: "Google rating" },
-  { value: "9", suffix: " wks", label: "Average sale time" },
+  { value: "14", suffix: " days", label: "Average days to let" },
 ];
 ---
 
 <Base
   title={`About Us | ${siteName}`}
-  description={`Meet ${siteName} — an independent letting agency in Sampletown. Local expertise, personal service and honest valuations since 2014.`}
+  description={`Meet ${siteName} — an independent letting agency in Sampletown. Local expertise, personal service and honest rental appraisals since 2014.`}
   jsonLd={jsonLd}
 >
   <!-- Page hero banner -->
@@ -161,9 +161,9 @@ const stats = [
           <h3>Honest Valuations</h3>
           <div class="feature-divider"></div>
           <p>
-            We'll tell you what your home is really worth, not what we wish it
-            was. Accurate appraisals mean faster sales, fewer fall-throughs, and
-            no awkward renegotiations six weeks down the line.
+            We'll tell you what your home could realistically let for, not what
+            we wish it would. Accurate rental appraisals mean fewer void weeks
+            and no awkward renegotiations with prospective tenants.
           </p>
         </div>
       </div>

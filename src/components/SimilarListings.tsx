@@ -8,8 +8,8 @@ interface Property {
   title: string;
   status: string;
   propertyType?: string;
-  price: number;
-  priceQualifier?: string;
+  rentPerMonth?: number;
+  rentPeriod?: string;
   bedrooms?: number;
   bathrooms?: number;
   sqft?: number;
@@ -30,24 +30,20 @@ interface Props {
   allProperties: Property[];
 }
 
-function formatPrice(price: number, qualifier?: string): string {
-  if (!price && qualifier === "POA") return "POA";
-  const formatted = `£${price.toLocaleString("en-GB")}`;
-  return qualifier && qualifier !== "POA" ? `${qualifier} ${formatted}` : formatted;
+function formatRent(rent: number | null | undefined, period?: string): string {
+  if (rent == null) return "";
+  const label = period === "pw" ? "pw" : "pcm";
+  return `£${rent.toLocaleString("en-GB")} ${label}`;
 }
 
 function statusColour(s: string): string {
-  if (s === "for-sale" || s === "for-rent") return "bg-green-100 text-green-800";
-  if (s === "under-offer" || s === "let-agreed") return "bg-amber-100 text-amber-800";
-  return "bg-red-100 text-red-800";
+  if (s === "for-rent") return "bg-green-100 text-green-800";
+  if (s === "let-agreed") return "bg-amber-100 text-amber-800";
+  return "bg-gray-100 text-gray-800";
 }
 
 function statusLabel(s: string): string {
   const m: Record<string, string> = {
-    "for-sale": "For Sale",
-    "under-offer": "Under Offer",
-    "sold-stc": "Sold STC",
-    sold: "Sold",
     "for-rent": "To Let",
     "let-agreed": "Let Agreed",
     let: "Let",
@@ -84,7 +80,7 @@ function PropertyCard({ p }: { p: Property }) {
           className="text-xl font-bold mb-1"
           style={{ fontFamily: "var(--font-display, Georgia, serif)" }}
         >
-          {formatPrice(p.price, p.priceQualifier)}
+          {formatRent(p.rentPerMonth, p.rentPeriod)}
         </p>
         <h3 className="text-sm font-semibold text-gray-800 mb-2 line-clamp-1">{p.title}</h3>
         {(p.town || p.postcode) && (

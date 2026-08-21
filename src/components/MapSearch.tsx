@@ -1,3 +1,5 @@
+"use client";
+
 import type { Map as LeafletMap, Marker as LeafletMarker } from "leaflet";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -8,8 +10,8 @@ interface PropertyListing {
   title: string;
   status: string;
   propertyType?: string;
-  price: number;
-  priceQualifier?: string;
+  rentPerMonth?: number;
+  rentPeriod?: string;
   bedrooms?: number;
   bathrooms?: number;
   sqft?: number;
@@ -33,18 +35,14 @@ interface Props {
 }
 
 // ── Helpers ──
-function formatPrice(price: number, qualifier?: string): string {
-  if (!price && qualifier === "POA") return "POA";
-  const formatted = `£${price.toLocaleString("en-GB")}`;
-  return qualifier && qualifier !== "POA" ? `${qualifier} ${formatted}` : formatted;
+function formatRent(rent: number | null | undefined, period?: string): string {
+  if (rent == null) return "";
+  const label = period === "pw" ? "pw" : "pcm";
+  return `£${rent.toLocaleString("en-GB")} ${label}`;
 }
 
 function statusLabel(s: string): string {
   const m: Record<string, string> = {
-    "for-sale": "For Sale",
-    "under-offer": "Under Offer",
-    "sold-stc": "Sold STC",
-    sold: "Sold",
     "for-rent": "To Let",
     "let-agreed": "Let Agreed",
     let: "Let",
@@ -53,23 +51,22 @@ function statusLabel(s: string): string {
 }
 
 function statusDot(s: string): string {
-  if (s === "for-sale" || s === "for-rent") return "#16a34a";
-  if (s === "under-offer" || s === "let-agreed") return "#d97706";
-  return "#dc2626";
+  if (s === "for-rent") return "#16a34a";
+  if (s === "let-agreed") return "#d97706";
+  return "#6b7280";
 }
 
 // ── Marker popup close-timer tracking ──
 const closeTimers = new WeakMap<LeafletMarker, ReturnType<typeof setTimeout> | null>();
 
-// ── Price range presets ──
-const PRICE_RANGES = [
-  { value: "", label: "Any price" },
-  { value: "0-250000", label: "Up to £250k" },
-  { value: "250000-500000", label: "£250k – £500k" },
-  { value: "500000-750000", label: "£500k – £750k" },
-  { value: "750000-1000000", label: "£750k – £1m" },
-  { value: "1000000-2000000", label: "£1m – £2m" },
-  { value: "2000000-999999999", label: "£2m+" },
+// ── Rent range presets (pcm) ──
+const RENT_RANGES = [
+  { value: "", label: "Any rent" },
+  { value: "0-1000", label: "Up to £1,000 pcm" },
+  { value: "1000-1500", label: "£1,000 – £1,500 pcm" },
+  { value: "1500-2000", label: "£1,500 – £2,000 pcm" },
+  { value: "2000-3000", label: "£2,000 – £3,000 pcm" },
+  { value: "3000-99999", label: "£3,000+ pcm" },
 ];
 
 const BED_OPTIONS = [
@@ -83,14 +80,13 @@ const BED_OPTIONS = [
 
 const STATUS_OPTIONS = [
   { value: "", label: "All" },
-  { value: "for-sale", label: "For sale" },
   { value: "for-rent", label: "To let" },
-  { value: "under-offer", label: "Under offer" },
+  { value: "let-agreed", label: "Let agreed" },
 ];
 
 const SORT_OPTIONS = [
-  { value: "price-desc", label: "Price (high–low)" },
-  { value: "price-asc", label: "Price (low–high)" },
+  { value: "rent-desc", label: "Rent (high–low)" },
+  { value: "rent-asc", label: "Rent (low–high)" },
   { value: "beds-desc", label: "Most bedrooms" },
   { value: "newest", label: "Newest" },
 ];
@@ -110,8 +106,8 @@ export default function MapSearch({
   const [town, setTown] = useState("");
   const [type, setType] = useState("");
   const [minBeds, setMinBeds] = useState("");
-  const [priceRange, setPriceRange] = useState("");
-  const [sort, setSort] = useState("price-desc");
+  const [rentRange, setRentRange] = useState("");
+  const [sort, setSort] = useState("rent-desc");
   const [search, setSearch] = useState("");
 
   // ── Interaction state ──
@@ -144,17 +140,17 @@ export default function MapSearch({
     if (town) result = result.filter((p) => p.town === town);
     if (type) result = result.filter((p) => p.propertyType === type);
     if (minBeds) result = result.filter((p) => (p.bedrooms ?? 0) >= parseInt(minBeds, 10));
-    if (priceRange) {
-      const [min, max] = priceRange.split("-").map(Number);
-      result = result.filter((p) => p.price >= min && p.price <= max);
+    if (rentRange) {
+      const [min, max] = rentRange.split("-").map(Number);
+      result = result.filter((p) => (p.rentPerMonth ?? 0) >= min && (p.rentPerMonth ?? 0) <= max);
     }
 
     switch (sort) {
-      case "price-asc":
-        result.sort((a, b) => a.price - b.price);
+      case "rent-asc":
+        result.sort((a, b) => (a.rentPerMonth ?? 0) - (b.rentPerMonth ?? 0));
         break;
-      case "price-desc":
-        result.sort((a, b) => b.price - a.price);
+      case "rent-desc":
+        result.sort((a, b) => (b.rentPerMonth ?? 0) - (a.rentPerMonth ?? 0));
         break;
       case "beds-desc":
         result.sort((a, b) => (b.bedrooms ?? 0) - (a.bedrooms ?? 0));
@@ -162,7 +158,7 @@ export default function MapSearch({
     }
 
     return result;
-  }, [properties, status, town, type, minBeds, priceRange, sort, search]);
+  }, [properties, status, town, type, minBeds, rentRange, sort, search]);
 
   // ── Init Leaflet ──
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentional one-time init; view changes handled by the sync effect below
@@ -215,12 +211,16 @@ export default function MapSearch({
 
   // ── Create custom marker icon ──
   const createIcon = useCallback(
-    (price: number, _qualifier: string | undefined, isHovered: boolean, isSelected: boolean) => {
+    (rent: number | undefined, isHovered: boolean, isSelected: boolean) => {
       const L = LRef.current;
       if (!L) return null;
 
+      // Compact label: e.g. 1050 → "£1.1k", 2650 → "£2.7k", 3000 → "£3k"
+      const thousands = (rent ?? 0) / 1000;
       const label =
-        price >= 1000000 ? `£${(price / 1000000).toFixed(1)}m` : `£${Math.round(price / 1000)}k`;
+        thousands >= 10
+          ? `£${Math.round(thousands)}k`
+          : `£${thousands.toFixed(thousands % 1 === 0 ? 0 : 1)}k`;
 
       const bg = isSelected
         ? "var(--color-brand, #1a3a5c)"
@@ -274,7 +274,7 @@ export default function MapSearch({
       const { lat, lng } = p.location;
       bounds.push([lat, lng]);
 
-      const icon = createIcon(p.price, p.priceQualifier, false, false);
+      const icon = createIcon(p.rentPerMonth, false, false);
       if (!icon) return;
 
       const marker = L.marker([lat, lng], { icon, zIndexOffset: 0 })
@@ -298,7 +298,7 @@ export default function MapSearch({
         <div style="font-family:var(--font-body,system-ui,sans-serif);max-width:300px;">
           ${thumbUrl ? `<img src="${thumbUrl}" style="width:280px;height:160px;object-fit:cover;border-radius:8px 8px 0 0;background:#f3f4f6;display:block;" />` : `<div style="width:280px;height:160px;background:#f3f4f6;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:center;font-size:12px;color:#9ca3af;">No image</div>`}
           <div style="padding:10px 12px 12px;">
-            <div style="font-weight:700;font-size:18px;color:#111;margin-bottom:2px;">${formatPrice(p.price, p.priceQualifier)}</div>
+            <div style="font-weight:700;font-size:18px;color:#111;margin-bottom:2px;">${formatRent(p.rentPerMonth, p.rentPeriod)}</div>
             <div style="font-size:13px;color:#374151;margin-bottom:4px;font-weight:500;">${p.title}</div>
             <div style="font-size:11px;color:#6b7280;margin-bottom:6px;">${[p.town, p.postcode].filter(Boolean).join(", ")}</div>
             <div style="font-size:11px;color:#6b7280;margin-bottom:${p.epc ? "4px" : "8px"};">
@@ -358,7 +358,7 @@ export default function MapSearch({
     markersRef.current.forEach((marker, id) => {
       const p = filtered.find((x) => x._id === id);
       if (!p) return;
-      const icon = createIcon(p.price, p.priceQualifier, id === hoveredId, id === selectedId);
+      const icon = createIcon(p.rentPerMonth, id === hoveredId, id === selectedId);
       if (icon) marker.setIcon(icon);
       marker.setZIndexOffset(id === selectedId ? 1000 : id === hoveredId ? 999 : 0);
     });
@@ -393,11 +393,11 @@ export default function MapSearch({
     setTown("");
     setType("");
     setMinBeds("");
-    setPriceRange("");
+    setRentRange("");
     setSearch("");
   };
 
-  const hasActiveFilters = status || town || type || minBeds || priceRange || search;
+  const hasActiveFilters = status || town || type || minBeds || rentRange || search;
 
   // ── Select styling ──
   const selCls =
@@ -504,11 +504,11 @@ export default function MapSearch({
                   ))}
                 </select>
                 <select
-                  value={priceRange}
-                  onChange={(e) => setPriceRange(e.target.value)}
+                  value={rentRange}
+                  onChange={(e) => setRentRange(e.target.value)}
                   className={selCls}
                 >
-                  {PRICE_RANGES.map((o) => (
+                  {RENT_RANGES.map((o) => (
                     <option key={o.value} value={o.value}>
                       {o.label}
                     </option>
@@ -628,7 +628,7 @@ export default function MapSearch({
                         className="text-base font-bold text-gray-900 leading-tight"
                         style={{ fontFamily: "var(--font-display, Georgia, serif)" }}
                       >
-                        {formatPrice(p.price, p.priceQualifier)}
+                        {formatRent(p.rentPerMonth, p.rentPeriod)}
                       </p>
                       <span className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-gray-500 flex-shrink-0">
                         <span

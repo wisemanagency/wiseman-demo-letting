@@ -1,7 +1,7 @@
 // ── Property Queries ──
 
 export const allPropertiesQuery = `
-  *[_type == "property"] | order(_createdAt desc) {
+  *[_type == "property" && status in ["for-rent", "let-agreed", "let"]] | order(_createdAt desc) {
     _id,
     title,
     "slug": slug.current,
@@ -32,7 +32,7 @@ export const allPropertiesQuery = `
 `;
 
 export const propertyBySlugQuery = `
-  *[_type == "property" && slug.current == $slug][0] {
+  *[_type == "property" && slug.current == $slug && status in ["for-rent", "let-agreed", "let"]][0] {
     _id,
     title,
     "slug": slug.current,
@@ -101,7 +101,7 @@ export const propertyBySlugQuery = `
 `;
 
 export const propertiesByAreaQuery = `
-  *[_type == "property" && town == $area] | order(price desc) {
+  *[_type == "property" && town == $area && status in ["for-rent", "let-agreed", "let"]] | order(coalesce(rentPerMonth, 0) desc) {
     _id,
     title,
     "slug": slug.current,
@@ -125,7 +125,7 @@ export const propertiesByAreaQuery = `
 `;
 
 export const featuredPropertiesQuery = `
-  *[_type == "property" && status in ["for-sale", "for-rent"]] | order(_createdAt desc) [0...6] {
+  *[_type == "property" && status in ["for-rent", "let-agreed", "let"]] | order(_createdAt desc) [0...6] {
     _id,
     title,
     "slug": slug.current,
@@ -211,13 +211,13 @@ export const siteSettingsQuery = `
 // ── Utility: Get all unique towns (for filter dropdowns) ──
 
 export const allTownsQuery = `
-  array::unique(*[_type == "property"].town)
+  array::unique(*[_type == "property" && status in ["for-rent", "let-agreed", "let"]].town)
 `;
 
 // ── Utility: Get all unique property types ──
 
 export const allPropertyTypesQuery = `
-  array::unique(*[_type == "property"].propertyType)
+  array::unique(*[_type == "property" && status in ["for-rent", "let-agreed", "let"]].propertyType)
 `;
 
 // ── Agent Queries ──
@@ -257,7 +257,7 @@ export const agentBySlugQuery = `
 `;
 
 export const propertiesByAgentQuery = `
-  *[_type == "property" && agent._ref == $agentId] | order(_createdAt desc) {
+  *[_type == "property" && agent._ref == $agentId && status in ["for-rent", "let-agreed", "let"]] | order(_createdAt desc) {
     _id,
     title,
     "slug": slug.current,

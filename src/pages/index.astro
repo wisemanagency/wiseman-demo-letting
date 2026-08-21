@@ -6,21 +6,18 @@ import BookEvalBar from "@/components/BookEvalBar.astro";
 import TestimonialsCarousel from "@/components/TestimonialsCarousel.astro";
 import { sanityClient, urlFor } from "@/lib/sanity";
 import {
-  featuredPropertiesQuery,
   siteSettingsQuery,
   allAreasQuery,
   allAgentsQuery,
   allPropertiesQuery,
 } from "@/lib/queries";
-import { formatPrice, statusLabel } from "@/lib/utils";
+import { formatRent, statusLabel } from "@/lib/utils";
 
 const settings = await sanityClient.fetch(siteSettingsQuery);
-const properties = await sanityClient.fetch(featuredPropertiesQuery);
 const areas = await sanityClient.fetch(allAreasQuery);
 const agents = await sanityClient.fetch(allAgentsQuery);
 const allProperties = await sanityClient.fetch(allPropertiesQuery);
 
-const featuredForHero = properties?.[0];
 // Always use the dedicated hero asset; it has the right crop + overlay contrast.
 const heroBg = "/estate-demo-hero.webp";
 
@@ -43,6 +40,7 @@ const townToSlug: Record<string, string> = {
   "Sampletown North": "sampletown-north",
   "Sampletown South": "sampletown-south",
   "Sampletown West": "sampletown-west",
+  "Sampletown East": "sampletown-east",
 };
 
 // 8 tiles for "Explore Our Properties" — 4 across × 2 rows
@@ -52,20 +50,7 @@ const exploreProperties = (allProperties ?? []).slice(0, 8);
 <Base jsonLd={jsonLd}>
   <!-- 1. Hero -->
   <Hero
-    siteName={settings?.siteName || "Letting Agent Demo"}
-    tagline={settings?.siteTagline}
-    featured={featuredForHero
-      ? {
-          title: featuredForHero.title,
-          slug: featuredForHero.slug,
-          price: featuredForHero.price,
-          priceQualifier: featuredForHero.priceQualifier,
-          bedrooms: featuredForHero.bedrooms,
-          bathrooms: featuredForHero.bathrooms,
-          sqft: featuredForHero.sqft,
-          thumbnail: featuredForHero.thumbnail,
-        }
-      : undefined}
+    tagline={settings?.siteTagline || "London property, we get it."}
     backgroundImage={heroBg}
   />
 
@@ -98,7 +83,7 @@ const exploreProperties = (allProperties ?? []).slice(0, 8);
                   <span class="label-status">{statusLabel(property.status)}</span>
                 </div>
                 <div class="property-tile-info">
-                  <p class="tile-price">{formatPrice(property.price, property.priceQualifier)}</p>
+                  <p class="tile-price">{formatRent(property.rentPerMonth, property.rentPeriod)}</p>
                   <p class="tile-title">{property.title}</p>
                   <p class="tile-meta">
                     {property.bedrooms != null && <span>{property.bedrooms} bed</span>}
@@ -185,8 +170,9 @@ const exploreProperties = (allProperties ?? []).slice(0, 8);
           <h3>Honest Valuations</h3>
           <div class="feature-divider"></div>
           <p>
-            We tell you what your home is really worth, not what we wish it was.
-            Accurate appraisals mean faster sales and fewer fall-throughs.
+            We tell you what your home could realistically let for, not what we
+            wish it would. Accurate appraisals mean fewer void weeks and tenants
+            that stay.
           </p>
         </div>
       </div>

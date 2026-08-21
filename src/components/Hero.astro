@@ -1,25 +1,12 @@
 ---
-import { formatPrice } from "@/lib/utils";
 
 interface Props {
-  siteName: string;
   tagline?: string;
-  /** Featured property to highlight in the meta pill (bed/bath/sqft) */
-  featured?: {
-    bedrooms?: number;
-    bathrooms?: number;
-    sqft?: number;
-    price: number;
-    priceQualifier?: string;
-    title: string;
-    slug: string;
-    thumbnail?: { asset: { url: string } };
-  };
   /** Background image URL for the hero. Falls back to a navy gradient. */
   backgroundImage?: string;
 }
 
-const { siteName, tagline, featured, backgroundImage } = Astro.props;
+const { tagline, backgroundImage } = Astro.props;
 
 const heroBg = backgroundImage
   ? `url('${backgroundImage}')`
@@ -36,7 +23,6 @@ const heroBg = backgroundImage
     </p>
 
     <div class="hero-pill-row">
-      <a href="/properties?status=for-sale" class="hero-pill">For Sale</a>
       <a href="/properties?status=for-rent" class="hero-pill">To Let</a>
       <a href="/valuation" class="hero-pill">Free Valuation</a>
       <a href="/map" class="hero-pill">Map Search</a>
@@ -55,8 +41,8 @@ const heroBg = backgroundImage
       />
       <select name="status" class="sb-cell" aria-label="Status">
         <option value="">Any Status</option>
-        <option value="for-sale">For Sale</option>
         <option value="for-rent">To Let</option>
+        <option value="let-agreed">Let Agreed</option>
       </select>
       <select name="bedrooms" class="sb-cell" aria-label="Bedrooms">
         <option value="">Any Beds</option>
@@ -71,13 +57,13 @@ const heroBg = backgroundImage
         <option value="2">2+</option>
         <option value="3">3+</option>
       </select>
-      <select name="maxPrice" class="sb-cell" aria-label="Max price">
-        <option value="">Max Price</option>
-        <option value="250000">Up to £250k</option>
-        <option value="500000">Up to £500k</option>
-        <option value="750000">Up to £750k</option>
-        <option value="1000000">Up to £1m</option>
-        <option value="2000000">Up to £2m</option>
+      <select name="maxRent" class="sb-cell" aria-label="Max rent">
+        <option value="">Max Rent</option>
+        <option value="800">Up to £800 pcm</option>
+        <option value="1200">Up to £1,200 pcm</option>
+        <option value="1500">Up to £1,500 pcm</option>
+        <option value="2000">Up to £2,000 pcm</option>
+        <option value="3000">Up to £3,000 pcm</option>
       </select>
       <button type="submit" class="sb-submit">Search</button>
     </form>

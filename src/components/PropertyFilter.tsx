@@ -6,8 +6,10 @@ interface Property {
   title: string;
   status: string;
   propertyType?: string;
-  price: number;
+  price?: number;
   priceQualifier?: string;
+  rentPerMonth?: number;
+  rentPeriod?: string;
   bedrooms?: number;
   bathrooms?: number;
   sqft?: number;
@@ -27,10 +29,8 @@ interface Props {
 
 const statusOptions = [
   { value: "", label: "All Statuses" },
-  { value: "for-sale", label: "For Sale" },
   { value: "for-rent", label: "To Let" },
-  { value: "under-offer", label: "Under Offer" },
-  { value: "sold-stc", label: "Sold STC" },
+  { value: "let-agreed", label: "Let Agreed" },
 ];
 
 const bedroomOptions = [
@@ -42,34 +42,30 @@ const bedroomOptions = [
   { value: "5", label: "5+" },
 ];
 
-const priceRanges = [
-  { value: "", label: "Any Price" },
-  { value: "0-250000", label: "Up to £250k" },
-  { value: "250000-500000", label: "£250k – £500k" },
-  { value: "500000-750000", label: "£500k – £750k" },
-  { value: "750000-1000000", label: "£750k – £1m" },
-  { value: "1000000-999999999", label: "£1m+" },
+const rentRanges = [
+  { value: "", label: "Any Rent" },
+  { value: "0-1000", label: "Up to £1,000 pcm" },
+  { value: "1000-1500", label: "£1,000 – £1,500 pcm" },
+  { value: "1500-2000", label: "£1,500 – £2,000 pcm" },
+  { value: "2000-3000", label: "£2,000 – £3,000 pcm" },
+  { value: "3000-99999", label: "£3,000+ pcm" },
 ];
 
 const sortOptions = [
   { value: "newest", label: "Newest First" },
-  { value: "price-asc", label: "Price (Low–High)" },
-  { value: "price-desc", label: "Price (High–Low)" },
+  { value: "rent-asc", label: "Rent (Low–High)" },
+  { value: "rent-desc", label: "Rent (High–Low)" },
   { value: "beds-desc", label: "Most Bedrooms" },
 ];
 
-function formatPrice(price: number, qualifier?: string): string {
-  if (!price && qualifier === "POA") return "POA";
-  const formatted = `£${price.toLocaleString("en-GB")}`;
-  return qualifier && qualifier !== "POA" ? `${qualifier} ${formatted}` : formatted;
+function formatRent(rent: number | null | undefined, period?: string): string {
+  if (rent == null) return "";
+  const label = period === "pw" ? "pw" : "pcm";
+  return `£${rent.toLocaleString("en-GB")} ${label}`;
 }
 
 function statusLabel(status: string): string {
   const map: Record<string, string> = {
-    "for-sale": "For Sale",
-    "under-offer": "Under Offer",
-    "sold-stc": "Sold STC",
-    sold: "Sold",
     "for-rent": "To Let",
     "let-agreed": "Let Agreed",
     let: "Let",
@@ -78,9 +74,9 @@ function statusLabel(status: string): string {
 }
 
 function statusColour(status: string): string {
-  if (status === "for-sale" || status === "for-rent") return "bg-green-600";
-  if (status === "under-offer" || status === "let-agreed") return "bg-amber-500";
-  return "bg-red-600";
+  if (status === "for-rent") return "bg-green-600";
+  if (status === "let-agreed") return "bg-amber-500";
+  return "bg-gray-600";
 }
 
 export default function PropertyFilter({ properties, towns, propertyTypes }: Props) {
@@ -88,7 +84,7 @@ export default function PropertyFilter({ properties, towns, propertyTypes }: Pro
   const [town, setTown] = useState("");
   const [type, setType] = useState("");
   const [minBeds, setMinBeds] = useState("");
-  const [priceRange, setPriceRange] = useState("");
+  const [rentRange, setRentRange] = useState("");
   const [sort, setSort] = useState("newest");
   const [search, setSearch] = useState("");
 
@@ -111,18 +107,18 @@ export default function PropertyFilter({ properties, towns, propertyTypes }: Pro
     if (town) result = result.filter((p) => p.town === town);
     if (type) result = result.filter((p) => p.propertyType === type);
     if (minBeds) result = result.filter((p) => (p.bedrooms ?? 0) >= parseInt(minBeds, 10));
-    if (priceRange) {
-      const [min, max] = priceRange.split("-").map(Number);
-      result = result.filter((p) => p.price >= min && p.price <= max);
+    if (rentRange) {
+      const [min, max] = rentRange.split("-").map(Number);
+      result = result.filter((p) => (p.rentPerMonth ?? 0) >= min && (p.rentPerMonth ?? 0) <= max);
     }
 
     // Sort
     switch (sort) {
-      case "price-asc":
-        result.sort((a, b) => a.price - b.price);
+      case "rent-asc":
+        result.sort((a, b) => (a.rentPerMonth ?? 0) - (b.rentPerMonth ?? 0));
         break;
-      case "price-desc":
-        result.sort((a, b) => b.price - a.price);
+      case "rent-desc":
+        result.sort((a, b) => (b.rentPerMonth ?? 0) - (a.rentPerMonth ?? 0));
         break;
       case "beds-desc":
         result.sort((a, b) => (b.bedrooms ?? 0) - (a.bedrooms ?? 0));
@@ -132,7 +128,7 @@ export default function PropertyFilter({ properties, towns, propertyTypes }: Pro
     }
 
     return result;
-  }, [properties, status, town, type, minBeds, priceRange, sort, search]);
+  }, [properties, status, town, type, minBeds, rentRange, sort, search]);
 
   const selectClass =
     "w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 appearance-none cursor-pointer";
@@ -197,11 +193,11 @@ export default function PropertyFilter({ properties, towns, propertyTypes }: Pro
           </select>
 
           <select
-            value={priceRange}
-            onChange={(e) => setPriceRange(e.target.value)}
+            value={rentRange}
+            onChange={(e) => setRentRange(e.target.value)}
             className={selectClass}
           >
-            {priceRanges.map((opt) => (
+            {rentRanges.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>
@@ -251,7 +247,7 @@ export default function PropertyFilter({ properties, towns, propertyTypes }: Pro
               </div>
               <div className="p-4">
                 <p className="text-xl font-bold mb-1" style={{ fontFamily: "var(--font-display)" }}>
-                  {formatPrice(property.price, property.priceQualifier)}
+                  {formatRent(property.rentPerMonth, property.rentPeriod)}
                 </p>
                 <h3 className="text-sm font-semibold text-gray-800 mb-1 truncate">
                   {property.title}
@@ -280,7 +276,7 @@ export default function PropertyFilter({ properties, towns, propertyTypes }: Pro
               setTown("");
               setType("");
               setMinBeds("");
-              setPriceRange("");
+              setRentRange("");
               setSearch("");
             }}
             className="mt-4 text-sm font-semibold underline"
