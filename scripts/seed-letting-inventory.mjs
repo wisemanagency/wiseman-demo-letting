@@ -14,7 +14,9 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
 import dotenv from "dotenv";
+
 dotenv.config({ path: join(__dirname, "..", ".env") });
 
 function resolveToken() {
@@ -62,7 +64,7 @@ const isoDays = (deltaDays) => {
 
 // Deposit = ~5 weeks rent (UK standard cap for letting)
 function deposit(rentPcm) {
-  return Math.round((rentPcm * 12) / 52 * 5);
+  return Math.round(((rentPcm * 12) / 52) * 5);
 }
 
 // ── Reference IDs (already in production) ─────────────────────────────────────
@@ -80,19 +82,30 @@ const AREA_IDS = {
 };
 const BRANCH_REF = "scaffold-demo-branch-central";
 
-// ── Reuse an image asset ref from the existing seed so the new properties
-//    render real photos instead of the floorplan placeholder. The asset itself
-//    stays owned by its original property; multiple documents can reference it.
-async function getReusableImageRef() {
-  const first = await client.fetch(
-    `*[_type == "property" && defined(images) && count(images) > 0][0]{
-      "assetRef": images[0].asset._ref
-    }`,
-    {},
-    { cache: "no-store" }
-  );
-  return first?.assetRef ?? null;
-}
+// ── Per-property image refs (REPLACE these with the asset refs you actually
+//    want each property to use). Leaving an entry absent means the property
+//    will be created with images: [] and the front-end will fall back to the
+//    floorplan placeholder.
+//
+//    We intentionally do NOT reuse another property's image here: a previous
+//    version of this script picked a single image asset and assigned it to
+//    every new property, which made 6 listings render the same photo. If a
+//    property needs a real photo, upload one to Sanity and add its asset _ref
+//    to this map. If you don't have a photo yet, leave the entry absent — the
+//    floorplan placeholder is a far better failure mode than a misleading
+//    duplicate.
+//
+//    Example (do NOT assume these IDs exist — fetch the real _ref from
+//    Sanity Studio's Media tab after upload):
+//      "1-bed-flat-harbour-view-sampletown-north": "image-abc123...-1920x1280-webp",
+const IMAGE_REFS = {
+  // "1-bed-flat-harbour-view-sampletown-north": "image-...-1920x1280-webp",
+  // "3-bed-semi-oak-lane-sampletown-north": "image-...-1920x1280-webp",
+  // "2-bed-maisonette-riverside-quay-sampletown-west": "image-...-1920x1280-webp",
+  // "4-bed-detached-willow-drive-sampletown-west": "image-...-1920x1280-webp",
+  // "2-bed-cottage-mill-lane-sampletown-east": "image-...-1920x1280-webp",
+  // "3-bed-bungalow-heathfield-road-sampletown-east": "image-...-1920x1280-webp",
+};
 
 // ── Patches: convert the 2 existing for-rent properties to full letting data ─
 //
@@ -123,7 +136,23 @@ const PATCHES = [
 ];
 
 // ── New letting properties (6, two per area for North/West/East) ──────────────
-function makeProperty({ id, slug, title, type, town, areaRef, beds, baths, sqft, rent, furnished, minTerm, daysFromNow, agent, features, description }) {
+function makeProperty({
+  slug,
+  title,
+  type,
+  town,
+  areaRef,
+  beds,
+  baths,
+  sqft,
+  rent,
+  furnished,
+  minTerm,
+  daysFromNow,
+  agent,
+  features,
+  description,
+}) {
   return {
     _type: "property",
     _id: `prop-${slug}`,
@@ -153,8 +182,12 @@ function makeProperty({ id, slug, title, type, town, areaRef, beds, baths, sqft,
     addressLine1: `${beds} ${title.split(",")[0]} Building`,
     town,
     county: "Sample County",
-    postcode: `SE${(Math.floor(Math.random() * 9) + 1)}${Math.floor(Math.random() * 9) + 1} ${(Math.floor(Math.random() * 9) + 1)}${Math.floor(Math.random() * 9) + 1}AB`,
-    location: { _type: "geopoint", lat: 51.5074 + (Math.random() - 0.5) * 0.02, lng: -0.1278 + (Math.random() - 0.5) * 0.02 },
+    postcode: `SE${Math.floor(Math.random() * 9) + 1}${Math.floor(Math.random() * 9) + 1} ${Math.floor(Math.random() * 9) + 1}${Math.floor(Math.random() * 9) + 1}AB`,
+    location: {
+      _type: "geopoint",
+      lat: 51.5074 + (Math.random() - 0.5) * 0.02,
+      lng: -0.1278 + (Math.random() - 0.5) * 0.02,
+    },
     branch: { _type: "reference", _ref: BRANCH_REF },
     agent: { _type: "reference", _ref: agent },
     areaRef,
@@ -164,32 +197,50 @@ function makeProperty({ id, slug, title, type, town, areaRef, beds, baths, sqft,
 const NEW_PROPERTIES = [
   // ── Sampletown North — 2 ────────────────────────────────────────────────────
   makeProperty({
-    id: "harbour-view",
     slug: "1-bed-flat-harbour-view-sampletown-north",
     title: "1 Bedroom Flat, Harbour View, Sampletown North",
     type: "Flat",
     town: "Sampletown North",
     areaRef: AREA_IDS.north,
-    beds: 1, baths: 1, sqft: 480,
-    rent: 1050, furnished: "furnished", minTerm: 6, daysFromNow: -7,
+    beds: 1,
+    baths: 1,
+    sqft: 480,
+    rent: 1050,
+    furnished: "furnished",
+    minTerm: 6,
+    daysFromNow: -7,
     agent: AGENT_IDS.riley,
-    features: ["Open-plan kitchen", "Built-in storage", "Lift access", "Walking distance to station"],
+    features: [
+      "Open-plan kitchen",
+      "Built-in storage",
+      "Lift access",
+      "Walking distance to station",
+    ],
     description: [
       "A bright one-bedroom flat in a modern block, well placed for the riverside and the station.",
       "The accommodation includes an open-plan kitchen and reception room, a double bedroom with built-in storage, and a contemporary bathroom.",
     ],
   }),
   makeProperty({
-    id: "oak-lane",
     slug: "3-bed-semi-oak-lane-sampletown-north",
     title: "3 Bedroom Semi-Detached House, Oak Lane, Sampletown North",
     type: "Semi-Detached",
     town: "Sampletown North",
     areaRef: AREA_IDS.north,
-    beds: 3, baths: 2, sqft: 1100,
-    rent: 1750, furnished: "part-furnished", minTerm: 12, daysFromNow: 21,
+    beds: 3,
+    baths: 2,
+    sqft: 1100,
+    rent: 1750,
+    furnished: "part-furnished",
+    minTerm: 12,
+    daysFromNow: 21,
     agent: AGENT_IDS.alex,
-    features: ["South-facing garden", "Off-street parking", "Modern kitchen", "En-suite to principal bedroom"],
+    features: [
+      "South-facing garden",
+      "Off-street parking",
+      "Modern kitchen",
+      "En-suite to principal bedroom",
+    ],
     description: [
       "A well-presented three-bedroom semi-detached house on a quiet residential lane.",
       "Two reception rooms, a fitted kitchen, three bedrooms and a south-facing garden. Driveway parking for two cars.",
@@ -198,14 +249,18 @@ const NEW_PROPERTIES = [
 
   // ── Sampletown West — 2 ─────────────────────────────────────────────────────
   makeProperty({
-    id: "riverside-quay-maisonette",
     slug: "2-bed-maisonette-riverside-quay-sampletown-west",
     title: "2 Bedroom Maisonette, Riverside Quay, Sampletown West",
     type: "Maisonette",
     town: "Sampletown West",
     areaRef: AREA_IDS.west,
-    beds: 2, baths: 1, sqft: 780,
-    rent: 1400, furnished: "furnished", minTerm: 6, daysFromNow: -3,
+    beds: 2,
+    baths: 1,
+    sqft: 780,
+    rent: 1400,
+    furnished: "furnished",
+    minTerm: 6,
+    daysFromNow: -3,
     agent: AGENT_IDS.jordan,
     features: ["Riverside views", "Private entrance", "Fitted kitchen", "Allocated parking"],
     description: [
@@ -214,14 +269,18 @@ const NEW_PROPERTIES = [
     ],
   }),
   makeProperty({
-    id: "willow-drive-detached",
     slug: "4-bed-detached-willow-drive-sampletown-west",
     title: "4 Bedroom Detached House, Willow Drive, Sampletown West",
     type: "Detached",
     town: "Sampletown West",
     areaRef: AREA_IDS.west,
-    beds: 4, baths: 2, sqft: 1680,
-    rent: 2650, furnished: "unfurnished", minTerm: 12, daysFromNow: 45,
+    beds: 4,
+    baths: 2,
+    sqft: 1680,
+    rent: 2650,
+    furnished: "unfurnished",
+    minTerm: 12,
+    daysFromNow: 45,
     agent: AGENT_IDS.sam,
     features: ["Large rear garden", "Double garage", "Two reception rooms", "Utility room"],
     description: [
@@ -232,14 +291,18 @@ const NEW_PROPERTIES = [
 
   // ── Sampletown East — 2 ─────────────────────────────────────────────────────
   makeProperty({
-    id: "mill-lane-cottage",
     slug: "2-bed-cottage-mill-lane-sampletown-east",
     title: "2 Bedroom Terraced Cottage, Mill Lane, Sampletown East",
     type: "Cottage",
     town: "Sampletown East",
     areaRef: AREA_IDS.east,
-    beds: 2, baths: 1, sqft: 720,
-    rent: 1150, furnished: "unfurnished", minTerm: 12, daysFromNow: 14,
+    beds: 2,
+    baths: 1,
+    sqft: 720,
+    rent: 1150,
+    furnished: "unfurnished",
+    minTerm: 12,
+    daysFromNow: 14,
     agent: AGENT_IDS.alex,
     features: ["Period features", "Exposed beams", "Wood-burning stove", "Rear courtyard"],
     description: [
@@ -248,14 +311,18 @@ const NEW_PROPERTIES = [
     ],
   }),
   makeProperty({
-    id: "heathfield-bungalow",
     slug: "3-bed-bungalow-heathfield-road-sampletown-east",
     title: "3 Bedroom Detached Bungalow, Heathfield Road, Sampletown East",
     type: "Bungalow",
     town: "Sampletown East",
     areaRef: AREA_IDS.east,
-    beds: 3, baths: 2, sqft: 1250,
-    rent: 1850, furnished: "part-furnished", minTerm: 6, daysFromNow: -21,
+    beds: 3,
+    baths: 2,
+    sqft: 1250,
+    rent: 1850,
+    furnished: "part-furnished",
+    minTerm: 6,
+    daysFromNow: -21,
     agent: AGENT_IDS.riley,
     features: ["Wraparound garden", "Garage", "Conservatory", "Quiet cul-de-sac"],
     description: [
@@ -273,7 +340,11 @@ async function main() {
   // Patches
   console.log("── Patches ──");
   for (const patch of PATCHES) {
-    const existing = await client.fetch(`*[_id == $id][0]{_id, _rev}`, { id: patch._id }, { cache: "no-store" });
+    const existing = await client.fetch(
+      `*[_id == $id][0]{_id, _rev}`,
+      { id: patch._id },
+      { cache: "no-store" }
+    );
     if (!existing) {
       console.log(`  ⚠️  ${patch.label}: doc not found, skipping`);
       continue;
@@ -286,7 +357,9 @@ async function main() {
       availableFrom: patch.availableFrom,
       depositAmount: patch.depositAmount,
     };
-    console.log(`  • ${patch.label}: rent=£${patch.rentPerMonth}/${patch.rentPeriod}, ${patch.furnished}, min ${patch.minTermMonths}mo, avail ${patch.availableFrom}, dep £${patch.depositAmount}`);
+    console.log(
+      `  • ${patch.label}: rent=£${patch.rentPerMonth}/${patch.rentPeriod}, ${patch.furnished}, min ${patch.minTermMonths}mo, avail ${patch.availableFrom}, dep £${patch.depositAmount}`
+    );
     if (dryRun) continue;
     let op = client.patch(patch._id).set(fields);
     if (existing._rev) op = op.ifRevisionId(existing._rev);
@@ -296,22 +369,51 @@ async function main() {
 
   // New properties
   console.log("\n── New properties ──");
-  const imageAssetRef = await getReusableImageRef();
-  if (!imageAssetRef) {
-    console.log("  ⚠️  no existing image asset found; new properties will render with floorplan placeholder");
+
+  // Pre-flight: every property must have its own entry in IMAGE_REFS, or
+  // explicitly be opted in to the placeholder fallback. Anything missing is
+  // treated as an operator mistake and refused loudly — the whole point of
+  // this rewrite is that we never silently re-use another property's image.
+  const missing = NEW_PROPERTIES.filter((p) => !IMAGE_REFS[p.slug.current]);
+  if (missing.length > 0) {
+    console.log(
+      `  ⚠️  ${missing.length}/${NEW_PROPERTIES.length} properties have no entry in IMAGE_REFS:`
+    );
+    for (const p of missing) {
+      console.log(`     - ${p.slug.current}  (${p.title})`);
+    }
+    console.log(`     These will render with the floorplan placeholder. Add asset refs to`);
+    console.log(`     IMAGE_REFS in scripts/seed-letting-inventory.mjs and re-run, or leave`);
+    console.log(`     them absent if the placeholder is acceptable for now.`);
   }
 
   for (const prop of NEW_PROPERTIES) {
+    const imageRef = IMAGE_REFS[prop.slug.current];
+    const images = imageRef
+      ? [
+          {
+            _type: "image",
+            _key: Math.random().toString(36).slice(2, 14),
+            asset: { _type: "reference", _ref: imageRef },
+          },
+        ]
+      : [];
     const doc = {
       ...prop,
-      images: imageAssetRef
-        ? [{ _type: "image", _key: Math.random().toString(36).slice(2, 14), asset: { _type: "reference", _ref: imageAssetRef } }]
-        : [],
+      images,
     };
     delete doc.areaRef; // not part of the schema — just for our own reference
-    const existing = await client.fetch(`*[_id == $id][0]._id`, { id: doc._id }, { cache: "no-store" });
+    const existing = await client.fetch(
+      `*[_id == $id][0]._id`,
+      { id: doc._id },
+      { cache: "no-store" }
+    );
     const action = existing ? "updated" : "created";
-    console.log(`  • ${doc.title} (£${doc.rentPerMonth}/pcm, ${doc.furnished}, ${doc.bedrooms} bed)`);
+    const imageNote = imageRef ? `image: ${imageRef}` : "images: [] (placeholder fallback)";
+    console.log(
+      `  • ${doc.title} (£${doc.rentPerMonth}/pcm, ${doc.furnished}, ${doc.bedrooms} bed)`
+    );
+    console.log(`    ${imageNote}`);
     if (dryRun) continue;
     if (existing) {
       await client.createOrReplace(doc);
@@ -321,7 +423,10 @@ async function main() {
     console.log(`    ✓ ${action}`);
   }
 
-  console.log(`\n✅ Done.\n`);
+  const withImageless = NEW_PROPERTIES.filter((p) => !IMAGE_REFS[p.slug.current]).length;
+  console.log(
+    `\n✅ Done. ${NEW_PROPERTIES.length - withImageless}/${NEW_PROPERTIES.length} properties had explicit image refs; ${withImageless} will use the floorplan placeholder.\n`
+  );
 }
 
 main().catch((err) => {
