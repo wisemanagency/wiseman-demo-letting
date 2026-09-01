@@ -94,20 +94,43 @@ export const POST: APIRoute = async ({ request }) => {
     // If multiple webhooks are skipped in quick succession, each schedules
     // its own QStash message; the trailing-edge handler drops all but the
     // one whose scheduledAt matches the latest activity.
+    // Trailing-edge safety net: schedule a QStash message at
+    // (now + DEBOUNCE_MS) targeting the trailing-edge endpoint. QStash
+    // guarantees the delivery, so even if the user closes the tab and no
+    // further Sanity writes happen, the trailing-edge handler will check
+    // staleness and forward the deploy ~20s after the burst settles.
+    //
+    // If multiple webhooks are skipped in quick succession, each schedules
+    // its own QStash message; the trailing-edge handler drops all but the
+    // one whose scheduledAt matches the latest activity.
+    let trailingEdgeScheduled = false;
+    let trailingEdgeError: string | undefined;
     if (qstashClient) {
       try {
-        const origin = new URL(request.url).origin;
+        // Reconstruct the public origin from request headers. `request.url`
+        // inside a Vercel serverless function points to the deployment's
+        // internal proxy (resolves to ::1 / loopback), which QStash rejects
+        // as a loopback destination. The public-facing URL is in
+        // x-forwarded-proto + host instead.
+        const proto = request.headers.get("x-forwarded-proto") ?? "https";
+        const host = request.headers.get("host") ?? "wiseman-demo-letting.vercel.app";
+        const origin = `${proto}://${host}`;
         await qstashClient.publishJSON({
           url: `${origin}/api/sanity-webhook-trailing`,
           body: { scheduledAt: now },
           delay: DEBOUNCE_MS / 1000,
           retries: 3,
         });
+        trailingEdgeScheduled = true;
       } catch (err) {
-        // Logged but non-fatal: the leading-edge forward above already
-        // covered the burst's first edit. If QStash is unavailable, we
-        // degrade to the old leading-edge-with-cooldown behaviour.
-        console.error("qstash schedule failed:", (err as Error).message);
+        // Surfaced to caller (and logged): a failed QStash publish means
+        // the trailing-edge guarantee is lost for this skip, so the
+        // response must reflect that — not silently report success while
+        // logging only. The leading-edge forward above already covered
+        // the burst's first edit; we degrade to the old leading-edge-
+        // with-cooldown behaviour for this skip.
+        trailingEdgeError = (err as Error).message;
+        console.error("qstash schedule failed:", trailingEdgeError);
       }
     }
     return new Response(
@@ -115,7 +138,8 @@ export const POST: APIRoute = async ({ request }) => {
         status: "skipped",
         reason: "within-debounce-window",
         msSinceLastForward: now - lastForward,
-        trailingEdgeScheduled: qstashClient !== null,
+        trailingEdgeScheduled,
+        ...(trailingEdgeError ? { trailingEdgeError } : {}),
       }),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
