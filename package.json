@@ -25,6 +25,7 @@
     "@sanity/client": "^7.1.0",
     "@sanity/image-url": "^1.1.0",
     "@tailwindcss/vite": "^4.0.0",
+    "@upstash/qstash": "^2.11.3",
     "@upstash/redis": "^1.38.3",
     "astro": "^5.2.0",
     "dotenv": "^17.4.1",
