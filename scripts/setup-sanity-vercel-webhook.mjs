@@ -1,22 +1,34 @@
-// One-shot setup: ensure the Sanity → Vercel deploy hook is wired up.
+// One-shot setup: ensure the Sanity → debounced-Vercel-deploy-hook is wired up.
 //
-// The webhook tells Sanity to POST to a Vercel deploy-hook URL whenever a
-// content document is created, updated, or deleted in the production
-// dataset. That triggers a Vercel build, which in turn rebuilds the static
-// site with the fresh Sanity content.
+// The Sanity webhook points at this site's /api/sanity-webhook endpoint, which
+// debounces bursts of publish events and forwards to the Vercel deploy hook
+// only after the burst settles. Without this debouncer, a client uploading
+// several images in quick succession triggers overlapping Vercel deploys that
+// can capture intermediate state (e.g. only 1 of 6 images), leaving the live
+// site stale until the next edit.
 //
-// Why this exists: the site is a fully static build. It reads Sanity at
-// BUILD time, not request time. Without this hook, Studio publishes don't
-// reach Vercel — content drifts and the live site goes stale.
+// Why this script is templated (env-driven):
+//   - The Sanity project ID and the Vercel domain differ per client.
+//   - The deploy-hook URL is created in Vercel per project.
+//   - Re-running for a new client just means changing the env vars.
 //
 // Usage:
-//   node scripts/setup-sanity-vercel-webhook.mjs                  # dry-run, shows current state
-//   VERCEL_DEPLOY_HOOK_URL=https://api.vercel.com/v1/.../... \
-//     node scripts/setup-sanity-vercel-webhook.mjs --apply        # creates/updates the webhook
+//   # Dry run — shows what would change:
+//   SANITY_PROJECT_ID=abc12345 \
+//   VERCEL_PROJECT_DOMAIN=client-site.vercel.app \
+//   VERCEL_DEPLOY_HOOK_URL=https://api.vercel.com/v1/integrations/deploy/prj_xxx/yyy \
+//     node scripts/setup-sanity-vercel-webhook.mjs
 //
-// The hook URL must come from Vercel (Project Settings → Git → Deploy
-// Hooks → Create). The Sanity CLI token is used for the Management API
-// call.
+//   # Apply — creates or PATCHes the hook:
+//   ...same env... \
+//     node scripts/setup-sanity-vercel-webhook.mjs --apply
+//
+// Optional overrides:
+//   SANITY_HOOK_NAME — custom name (default: "Vercel deploy hook (debounced)")
+//   WEBHOOK_TARGET_URL — bypass the debouncer and point Sanity directly at
+//                        a URL of your choice (e.g. the bare Vercel deploy
+//                        hook). Useful only if you've removed the /api
+//                        endpoint from this project.
 
 import https from "node:https";
 import fs from "fs";
@@ -26,12 +38,12 @@ import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const PROJECT_ID = "4k3lxsgw";
+const PROJECT_ID = process.env.SANITY_PROJECT_ID || "4k3lxsgw";
 const DATASET = "production";
-const HOOK_NAME = "Vercel deploy hook (letting)";
+const HOOK_NAME = process.env.SANITY_HOOK_NAME || "Vercel deploy hook (debounced)";
 
-// Document types whose changes should trigger a Vercel rebuild. Mirrors the
-// site schema: any change to a content doc should rebuild the static
+// Document types whose changes should trigger a Vercel rebuild. Mirrors
+// the site schema: any change to a content doc should rebuild the static
 // site. Testimonials/areas/branches are also surfaced in the UI, so they
 // count as content.
 const TYPES_TO_TRIGGER = [
@@ -57,8 +69,29 @@ function resolveToken() {
 }
 
 const TOKEN = resolveToken();
-const NEW_URL = process.env.VERCEL_DEPLOY_HOOK_URL;
 const APPLY = process.argv.includes("--apply");
+
+// Resolve the webhook target URL: either explicit override, or the
+// debouncer endpoint on this project's Vercel deployment.
+function resolveTargetUrl() {
+  if (process.env.WEBHOOK_TARGET_URL) return process.env.WEBHOOK_TARGET_URL;
+  const domain = process.env.VERCEL_PROJECT_DOMAIN;
+  if (!domain) {
+    throw new Error(
+      "VERCEL_PROJECT_DOMAIN is required (e.g. 'wiseman-demo-letting.vercel.app'). " +
+        "Override with WEBHOOK_TARGET_URL to bypass the debouncer."
+    );
+  }
+  return `https://${domain}/api/sanity-webhook`;
+}
+
+const NEW_URL = resolveTargetUrl();
+const DEPLOY_HOOK_URL = process.env.VERCEL_DEPLOY_HOOK_URL;
+if (!DEPLOY_HOOK_URL) {
+  throw new Error(
+    "VERCEL_DEPLOY_HOOK_URL is required (Project Settings → Git → Deploy Hooks → Create)."
+  );
+}
 
 function apiCall(method, path, body) {
   return new Promise((resolve, reject) => {
@@ -95,7 +128,7 @@ function apiCall(method, path, body) {
 const body = {
   name: HOOK_NAME,
   description:
-    "Triggered on any content change in the production dataset. Posts to the Vercel deploy hook so the static site rebuilds with fresh Sanity content.",
+    "Triggered on any content change in the production dataset. Posts to this site's /api/sanity-webhook debouncer, which forwards to the Vercel deploy hook after the burst settles (avoids overlapping deploys capturing intermediate state during multi-image uploads).",
   url: NEW_URL,
   dataset: DATASET,
   filter: null,
@@ -113,12 +146,16 @@ const body = {
 };
 
 async function main() {
-  console.log(`\n🔗 Sanity → Vercel deploy-hook setup\n`);
-  console.log(`   project: ${PROJECT_ID}`);
-  console.log(`   dataset: ${DATASET}`);
-  console.log(`   target URL: ${NEW_URL || "(not set — pass VERCEL_DEPLOY_HOOK_URL)"}`);
+  console.log(`\n🔗 Sanity → debounced Vercel deploy-hook setup\n`);
+  console.log(`   project:           ${PROJECT_ID}`);
+  console.log(`   dataset:           ${DATASET}`);
+  console.log(`   hook name:         ${HOOK_NAME}`);
+  console.log(`   webhook target:    ${NEW_URL}`);
+  console.log(`   deploy hook URL:   ${DEPLOY_HOOK_URL}`);
   console.log(`   types that trigger: ${TYPES_TO_TRIGGER.join(", ")}`);
-  console.log(`   mode: ${APPLY ? "APPLY (will write)" : "DRY RUN (pass --apply to write)"}\n`);
+  console.log(
+    `   mode:              ${APPLY ? "APPLY (will write)" : "DRY RUN (pass --apply to write)"}\n`
+  );
 
   // List existing webhooks
   const list = await apiCall("GET", `/hooks/projects/${PROJECT_ID}`);
@@ -130,9 +167,9 @@ async function main() {
 
   if (existing) {
     console.log(`── Found existing webhook ──`);
-    console.log(`   id:       ${existing.id}`);
-    console.log(`   url:      ${existing.url}`);
-    console.log(`   dataset:  ${existing.dataset}`);
+    console.log(`   id:        ${existing.id}`);
+    console.log(`   url:       ${existing.url}`);
+    console.log(`   dataset:   ${existing.dataset}`);
     console.log(`   isDisabled: ${existing.isDisabled}`);
     console.log(`   createdAt:  ${existing.createdAt}\n`);
 
@@ -170,7 +207,7 @@ async function main() {
   // No existing webhook — create one
   if (!APPLY) {
     console.log("── No existing webhook found ──");
-    console.log("   Re-run with --apply (and VERCEL_DEPLOY_HOOK_URL set) to create one.");
+    console.log("   Re-run with --apply to create one.");
     return;
   }
 
@@ -182,6 +219,12 @@ async function main() {
   console.log(`✅ Webhook created.`);
   console.log(`   id:  ${create.body.id}`);
   console.log(`   url: ${create.body.url}`);
+  console.log(`\n📋 Vercel checklist for this project:`);
+  console.log(`   1. Project Settings → Environment Variables:`);
+  console.log(`        VERCEL_DEPLOY_HOOK_URL = ${DEPLOY_HOOK_URL}`);
+  console.log(`   2. Project Settings → Storage → KV → Create (any name).`);
+  console.log(`      The KV_REST_API_URL and KV_REST_API_TOKEN env vars are auto-set.`);
+  console.log(`   3. Deploy the site so the /api/sanity-webhook endpoint is live.`);
 }
 
 main().catch((err) => {
