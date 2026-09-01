@@ -8,7 +8,8 @@
 //
 // This endpoint solves that by:
 //
-//   1. Recording the latest Sanity activity in Vercel KV.
+//   1. Recording the latest Sanity activity in Upstash Redis (the KV store
+//      Vercel now provisions via Storage → Redis or Storage → Upstash).
 //   2. Forwarding to the Vercel deploy hook IMMEDIATELY for the first
 //      webhook in a burst (low latency).
 //   3. Skipping subsequent webhooks that arrive within the cooldown
@@ -20,14 +21,16 @@
 // uploads produces 1–2 deploys, not N.
 //
 // Setup:
-//   - Vercel project → Storage → KV → Create (free tier is plenty).
+//   - Vercel project → Storage → Create Database → Redis (or Upstash).
+//     Connect it to this project — Vercel auto-adds
+//     UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN env vars.
 //   - Vercel project → Settings → Environment Variables:
 //       VERCEL_DEPLOY_HOOK_URL = the deploy-hook URL from Vercel
 //         (Project Settings → Git → Deploy Hooks)
 //   - Sanity project → API → Webhooks → update to POST to
 //       https://<your-vercel-domain>/api/sanity-webhook
 
-import { kv } from "@vercel/kv";
+import { Redis } from "@upstash/redis";
 import type { APIRoute } from "astro";
 
 export const prerender = false;
@@ -37,10 +40,17 @@ export const prerender = false;
 // while keeping perceived latency low (first image deploys immediately).
 const DEBOUNCE_MS = 20_000;
 
-// Keys in Vercel KV. Scoped per-project is unnecessary because each
-// Vercel project gets its own KV namespace.
+// Keys in Redis. Scoped per-project is unnecessary because each
+// Vercel project gets its own Redis database.
 const KEY_LAST_FORWARD = "sanity:debouncer:last-forward-at";
 const KEY_LAST_ACTIVITY = "sanity:debouncer:last-activity-at";
+
+// Lazy singleton — instantiated on first request so cold starts don't
+// allocate it for static-asset requests that happen to hit /api/.
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL ?? "",
+  token: process.env.UPSTASH_REDIS_REST_TOKEN ?? "",
+});
 
 export const POST: APIRoute = async ({ request: _request }) => {
   // Accept any POST — Sanity's signature is verified by URL obscurity,
@@ -49,11 +59,11 @@ export const POST: APIRoute = async ({ request: _request }) => {
   void _request;
   const now = Date.now();
 
-  // Record activity (TTL ≈ 2× debounce so a long pause still has history).
-  await kv.set(KEY_LAST_ACTIVITY, now, { ex: (DEBOUNCE_MS * 4) / 1000 });
+  // Record activity (TTL ≈ 4× debounce so a long pause still has history).
+  await redis.set(KEY_LAST_ACTIVITY, now, { ex: Math.ceil((DEBOUNCE_MS * 4) / 1000) });
 
   // Check cooldown: skip if we forwarded within the debounce window.
-  const lastForward = Number((await kv.get<number>(KEY_LAST_FORWARD)) ?? 0);
+  const lastForward = Number((await redis.get<number>(KEY_LAST_FORWARD)) ?? 0);
   if (now - lastForward < DEBOUNCE_MS) {
     return new Response(
       JSON.stringify({
@@ -90,7 +100,7 @@ export const POST: APIRoute = async ({ request: _request }) => {
     });
   }
 
-  await kv.set(KEY_LAST_FORWARD, Date.now(), { ex: (DEBOUNCE_MS * 4) / 1000 });
+  await redis.set(KEY_LAST_FORWARD, Date.now(), { ex: Math.ceil((DEBOUNCE_MS * 4) / 1000) });
 
   return new Response(JSON.stringify({ status: "forwarded", debounceMs: DEBOUNCE_MS }), {
     status: 200,
