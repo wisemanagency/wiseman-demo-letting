@@ -9,7 +9,6 @@ import FloorplansViewer from "@/components/FloorplansViewer";
 import ContactForm from "@/components/ContactForm";
 import AgentCard from "@/components/AgentCard.astro";
 import SimilarListings from "@/components/SimilarListings";
-import MortgageCalculator from "@/components/MortgageCalculator";
 import { sanityClient } from "@/lib/sanity";
 import { propertyBySlugQuery, allPropertiesQuery } from "@/lib/queries";
 import { formatPrice, formatRent, formatAvailableFrom, furnishedLabel, statusLabel, statusColour, fullAddress, propertySummary } from "@/lib/utils";
@@ -343,12 +342,6 @@ const jsonLd = {
               />
             </div>
           )}
-
-          <!-- Mortgage Calculator -->
-          <MortgageCalculator
-            client:visible
-            propertyPrice={property.price}
-          />
 
           {property.branch && (
             <div class="card card-body" style="text-align: center;">

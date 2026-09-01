@@ -11,7 +11,9 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
 import dotenv from "dotenv";
+
 dotenv.config({ path: join(__dirname, "..", ".env") });
 
 function resolveToken() {
@@ -62,7 +64,9 @@ for (const p of docs) {
 }
 
 // Agents
-const agents = await client.fetch(`*[_type == "agent" && active != false]{_id, name} | order(order asc)`);
+const agents = await client.fetch(
+  `*[_type == "agent" && active != false]{_id, name} | order(order asc)`
+);
 console.log("\nActive agents:");
 for (const a of agents) console.log(`  ${a._id.padEnd(30)} ${a.name}`);
 

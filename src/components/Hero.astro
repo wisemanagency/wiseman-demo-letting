@@ -17,21 +17,11 @@ const heroBg = backgroundImage
   <div class="hero-bg" style={`background-image: ${heroBg};`}></div>
 
   <div class="container hero-inner">
-    <h1>{tagline || "London property, we get it."}</h1>
-    <p class="hero-sub">
-      Expert guidance from your first viewing through to completion.
-    </p>
+    <h1>{tagline || "Find your next place to rent"}</h1>
 
-    <div class="hero-pill-row">
-      <a href="/properties?status=for-rent" class="hero-pill">To Let</a>
-      <a href="/valuation" class="hero-pill">Free Valuation</a>
-      <a href="/map" class="hero-pill">Map Search</a>
-    </div>
-  </div>
-
-  <!-- Search sub-bar overhanging the hero bottom -->
-  <div class="container hero-search-wrap">
-    <form action="/properties" method="get" class="search-bar">
+    <!-- Search bar centred in the middle of the hero (replaces the
+         previous pill row + overhanging search-bar combo) -->
+    <form action="/properties" method="get" class="search-bar hero-search-bar">
       <input
         type="text"
         name="q"
@@ -39,11 +29,6 @@ const heroBg = backgroundImage
         placeholder="Enter location, postcode or keyword…"
         style="background-image: none; text-align: left;"
       />
-      <select name="status" class="sb-cell" aria-label="Status">
-        <option value="">Any Status</option>
-        <option value="for-rent">To Let</option>
-        <option value="let-agreed">Let Agreed</option>
-      </select>
       <select name="bedrooms" class="sb-cell" aria-label="Bedrooms">
         <option value="">Any Beds</option>
         <option value="1">1+</option>

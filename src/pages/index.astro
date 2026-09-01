@@ -18,8 +18,8 @@ const areas = await sanityClient.fetch(allAreasQuery);
 const agents = await sanityClient.fetch(allAgentsQuery);
 const allProperties = await sanityClient.fetch(allPropertiesQuery);
 
-// Always use the dedicated hero asset; it has the right crop + overlay contrast.
-const heroBg = "/estate-demo-hero.webp";
+// Local hero asset dropped into public/ from the project Images folder.
+const heroBg = "/home-hero.webp";
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -50,7 +50,7 @@ const exploreProperties = (allProperties ?? []).slice(0, 8);
 <Base jsonLd={jsonLd}>
   <!-- 1. Hero -->
   <Hero
-    tagline={settings?.siteTagline || "London property, we get it."}
+    tagline="Find your next place to rent"
     backgroundImage={heroBg}
   />
 
@@ -229,8 +229,8 @@ const exploreProperties = (allProperties ?? []).slice(0, 8);
     <div class="container cta-strip-grid">
       <div class="cta-strip-image">
         <img
-          src="/valuation-cta.svg"
-          alt="Free property valuation illustration"
+          src="/estate-office-outdoor.webp"
+          alt="Letting Agent Demo office exterior"
           loading="lazy"
           decoding="async"
         />

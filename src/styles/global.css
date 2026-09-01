@@ -161,11 +161,9 @@ main:not(:has(> .section:last-child)) {
 .section-alt {
   background: var(--color-surface-alt);
 }
-/* The section immediately after the hero needs extra top padding so its
-   H2 sits below the overhanging search bar with a clear visual gap. */
-.hero + .section {
-  padding-top: 160px;
-}
+/* (No extra top-padding rule for `.hero + .section` — the search bar used
+   to overhang the hero bottom and needed 160px of clearance below; it now
+   sits inside the hero, so the next section can use its natural padding.) */
 
 /* ----- Section heading pattern (centred, with subtitle) ----- */
 .section-heading {
@@ -811,8 +809,13 @@ body[data-route="/"] .hero-bg::after {
 .hero-inner {
   position: relative;
   z-index: 1;
-  padding: 64px 0 120px;
+  padding: 80px 0 80px;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 620px;
 }
 .hero-meta {
   display: inline-flex;
@@ -840,8 +843,11 @@ body[data-route="/"] .hero-bg::after {
   line-height: 1.15;
   color: #fff;
   margin: 0 0 16px;
-  max-width: 760px;
-  margin-inline: auto;
+  /* Force the headline onto a single line — no wrap, regardless of
+     viewport. Combined with the breakpoint font-sizes below, this
+     keeps it readable on small screens without breaking the
+     single-line look on desktop. */
+  white-space: nowrap;
 }
 .hero-sub {
   font-size: 16px;
@@ -874,41 +880,32 @@ body[data-route="/"] .hero-bg::after {
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
 }
-.hero-search-wrap {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -40px;
-  z-index: 2;
+.hero-search-bar {
+  /* Lives inside `.hero-inner` (not absolutely positioned anymore).
+     Cap the width so the row doesn't span the whole container on
+     wide screens, and add a touch of top margin to separate from
+     the sub-heading. */
+  margin-top: 32px;
+  width: 100%;
+  max-width: 1080px;
 }
 @media (min-width: 640px) {
   .hero h1 {
     font-size: 40px;
   }
 }
-@media (min-width: 768px) {
+/* Bump to the headline size only at the lg breakpoint — at md (768–1023px)
+   the 56px size would overflow the container because the H1 is forced
+   onto a single line. */
+@media (min-width: 1024px) {
   .hero h1 {
     font-size: 56px;
   }
-  .hero-inner {
-    padding: 120px 0 140px;
-  }
 }
-
-/* Mobile needs the same treatment so the pill row doesn't disappear
-   behind the overhanging search bar. */
-@media (max-width: 767.98px) {
+@media (min-width: 768px) {
   .hero-inner {
-    padding-bottom: 240px;
-  }
-}
-/* Tablet (md → lg) gets a bit more breathing room between the subheading
-   and the overhanging search bar. We extend the hero's bottom padding at
-   tablet so the search bar drops lower without the pills disappearing
-   behind it. Declared after the 768px+ rule so this overrides it. */
-@media (min-width: 768px) and (max-width: 1023.98px) {
-  .hero-inner {
-    padding-bottom: 260px;
+    min-height: 740px;
+    padding: 96px 0;
   }
 }
 
