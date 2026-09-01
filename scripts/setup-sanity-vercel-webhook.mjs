@@ -131,18 +131,23 @@ const body = {
     "Triggered on any content change in the production dataset. Posts to this site's /api/sanity-webhook debouncer, which forwards to the Vercel deploy hook after the burst settles (avoids overlapping deploys capturing intermediate state during multi-image uploads).",
   url: NEW_URL,
   dataset: DATASET,
-  filter: null,
-  projection: null,
+  // POST doesn't accept the newer `rule` object — it needs the legacy
+  // `filter`/`projection` GROQ strings. We derive them from TYPES_TO_TRIGGER
+  // and use them for both POST (legacy) and PATCH (newer rule format).
+  filter: `_type in [${TYPES_TO_TRIGGER.map((t) => JSON.stringify(t)).join(", ")}]`,
+  projection: "{_type, _id}",
   httpMethod: "POST",
   includeDrafts: false,
   includeAllVersions: false,
   apiVersion: "v2021-03-25",
   headers: {},
-  rule: {
-    on: ["create", "update", "delete"],
-    filter: `_type in [${TYPES_TO_TRIGGER.map((t) => JSON.stringify(t)).join(", ")}]`,
-    projection: "{_type, _id}",
-  },
+};
+
+// PATCH-only: the newer format that combines on/filter/projection.
+const rule = {
+  on: ["create", "update", "delete"],
+  filter: body.filter,
+  projection: body.projection,
 };
 
 async function main() {
@@ -163,55 +168,77 @@ async function main() {
     console.log(`❌ Failed to list webhooks: ${JSON.stringify(list)}`);
     process.exit(1);
   }
-  const existing = (list.body || []).find((h) => h.name === HOOK_NAME);
+
+  // Match by name first; fall back to any webhook whose URL still points at
+  // the OLD Vercel deploy-hook pattern (legacy webhooks from before the
+  // debouncer existed).
+  const hooks = list.body || [];
+  const existing =
+    hooks.find((h) => h.name === HOOK_NAME) ||
+    hooks.find((h) => h.url?.includes("api.vercel.com/v1/integrations/deploy/"));
 
   if (existing) {
     console.log(`── Found existing webhook ──`);
     console.log(`   id:        ${existing.id}`);
+    console.log(`   name:      ${existing.name}`);
     console.log(`   url:       ${existing.url}`);
     console.log(`   dataset:   ${existing.dataset}`);
     console.log(`   isDisabled: ${existing.isDisabled}`);
     console.log(`   createdAt:  ${existing.createdAt}\n`);
 
     const urlMatches = existing.url === NEW_URL;
-    const typesMatch = JSON.stringify(existing.rule?.filter) === body.rule.filter;
+    const nameMatches = existing.name === HOOK_NAME;
+    const typesMatch = JSON.stringify(existing.rule?.filter) === rule.filter;
 
-    if (urlMatches && typesMatch) {
+    if (urlMatches && nameMatches && typesMatch) {
       console.log("✅ Webhook already correct — no changes needed.");
       return;
     }
 
     if (!APPLY) {
       console.log(
-        urlMatches
-          ? "   ↪ URL is current; types have drifted — re-run with --apply to update."
-          : "   ↪ URL has drifted from your local env — re-run with --apply to update."
+        `   ↪ ${!urlMatches ? "URL has drifted" : !typesMatch ? "types have drifted" : "name has drifted"} — re-run with --apply to update.`
       );
       return;
     }
 
-    // PATCH
+    // PATCH — the only supported mutation on an existing webhook.
     const patch = await apiCall("PATCH", `/hooks/projects/${PROJECT_ID}/${existing.id}`, {
+      name: HOOK_NAME,
       url: NEW_URL,
-      rule: body.rule,
+      rule,
     });
     if (patch.status !== 200) {
       console.log(`❌ PATCH failed: ${JSON.stringify(patch)}`);
       process.exit(1);
     }
     console.log("✅ Webhook updated.");
-    console.log(`   new url: ${patch.body.url}`);
+    console.log(`   new name: ${patch.body.name}`);
+    console.log(`   new url:  ${patch.body.url}`);
     return;
   }
 
-  // No existing webhook — create one
+  // No existing webhook at all — POST without `rule`/`filter`/`projection`
+  // (the POST endpoint is strict about which fields it accepts; the schema
+  // varies by API version). The webhook will trigger on every dataset
+  // change; PATCH it next run to add the type filter.
   if (!APPLY) {
     console.log("── No existing webhook found ──");
     console.log("   Re-run with --apply to create one.");
     return;
   }
 
-  const create = await apiCall("POST", `/hooks/projects/${PROJECT_ID}`, body);
+  const create = await apiCall("POST", `/hooks/projects/${PROJECT_ID}`, {
+    name: HOOK_NAME,
+    description: body.description,
+    url: NEW_URL,
+    dataset: DATASET,
+    httpMethod: "POST",
+    includeDrafts: false,
+    includeAllVersions: false,
+    apiVersion: "v2021-03-25",
+    headers: {},
+  });
   if (create.status !== 200 && create.status !== 201) {
     console.log(`❌ Create failed: ${JSON.stringify(create)}`);
     process.exit(1);
@@ -219,12 +246,17 @@ async function main() {
   console.log(`✅ Webhook created.`);
   console.log(`   id:  ${create.body.id}`);
   console.log(`   url: ${create.body.url}`);
-  console.log(`\n📋 Vercel checklist for this project:`);
-  console.log(`   1. Project Settings → Environment Variables:`);
-  console.log(`        VERCEL_DEPLOY_HOOK_URL = ${DEPLOY_HOOK_URL}`);
-  console.log(`   2. Project Settings → Storage → KV → Create (any name).`);
-  console.log(`      The KV_REST_API_URL and KV_REST_API_TOKEN env vars are auto-set.`);
-  console.log(`   3. Deploy the site so the /api/sanity-webhook endpoint is live.`);
+  console.log(
+    `\n   ⚠️  Created without a type filter (POST API limit). Re-run --apply now to add the filter.`
+  );
+
+  // Immediately PATCH to add the rule.
+  const patch = await apiCall("PATCH", `/hooks/projects/${PROJECT_ID}/${create.body.id}`, { rule });
+  if (patch.status !== 200) {
+    console.log(`   ⚠️  Could not add type filter automatically: ${JSON.stringify(patch)}`);
+    return;
+  }
+  console.log(`   ✅ Type filter added.`);
 }
 
 main().catch((err) => {
